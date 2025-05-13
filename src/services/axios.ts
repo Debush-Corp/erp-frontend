@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 
 // Crear una instancia de axios
 const instance: AxiosInstance = axios.create({
-  baseURL: 'https://erp-backend-i9ej.onrender.com/', // Cambia esto por la URL base de tu API
+  baseURL: 'https://erp-backend-i9ej.onrender.com', // Cambia esto por la URL base de tu API
   headers: {
     'Content-Type': 'application/json',
   },
