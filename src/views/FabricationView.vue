@@ -1,11 +1,11 @@
 <template>
-    <div id="home-view">
-        <h2>Home View</h2>
+    <div id="fabrication-view">
+        <h2>Fabrication View</h2>
     </div>
 </template>
 
 <style>
-    #home-view {
+    #fabrication-view {
         width: 100%;
         height: 100%;
         display: flex;

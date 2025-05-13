@@ -1,27 +1,70 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
+import ErpView from '../views/ErpView.vue'
+import HomeView from '@/views/HomeView.vue'
+import UsersView from '@/views/UsersView.vue'
+import InventoryView from '@/views/InventoryView.vue'
+import ProductsView from '@/views/ProductsView.vue'
+import MaterialsView from '@/views/MaterialsView.vue'
+import FabricationView from '@/views/FabricationView.vue'
+import MarketView from '@/views/MarketView.vue'
+import SalesView from '@/views/SalesView.vue'
 
 const routes: Array<RouteRecordRaw> = [
-  {
-    path: '/',
-    name: 'home',
-    component: HomeView,
-    meta: { requiresAuth: true } 
-  },
   {
     path: "/login",
     name: "login",
     component: LoginView
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue'),
-    meta: { requiresAuth: true }
+    path: '/',
+    name: 'erp',
+    component: ErpView,
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '/home',
+        name: 'home',
+        component: HomeView,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: "/users",
+        name: "users",
+        component: UsersView
+      },
+      {
+        path: "/inventory",
+        name: "inventory",
+        component: InventoryView,
+        children: [
+          {
+            path: "/products",
+            name: "products",
+            component: ProductsView
+          },
+          {
+            path: "/materials",
+            name: "materials",
+            component: MaterialsView
+          },
+        ]
+      },
+      {
+        path: "/fabrication",
+        name: "fabrication",
+        component: FabricationView
+      },
+      {
+        path: "/market",
+        name: "market",
+        component: MarketView
+      },
+      {
+        path: "/sales",
+        name: "sales",
+        component: SalesView
+      }]
   }
 ]
 

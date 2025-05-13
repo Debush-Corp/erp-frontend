@@ -1,11 +1,11 @@
 <template>
-    <div id="home-view">
-        <h2>Home View</h2>
+    <div id="market-view">
+        <h2>Market View</h2>
     </div>
 </template>
 
 <style>
-    #home-view {
+    #market-view {
         width: 100%;
         height: 100%;
         display: flex;
