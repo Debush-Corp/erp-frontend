@@ -32,7 +32,7 @@
             </svg>
             <div>
                 <h2>Rol</h2>
-                <p>{{ user?.rol || 'Sin rol' }}</p>
+                <p>{{ user?.groups[0] || 'Sin rol' }}</p>
             </div>
         </li>
         <hr />

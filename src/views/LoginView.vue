@@ -44,7 +44,6 @@ const success = ref(false);
 
 const store = useStore();
 const router = useRouter();
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Computed para validar si se puede enviar el formulario
 const canSubmit = computed(() => {
@@ -73,8 +72,7 @@ const handleLogin = async () => {
     }
 };
 
-watch(() =>  success.value, async () => {
-    await sleep(1500); 
+watch(() =>  success.value, () => {
     router.push('/');
 })
 </script>
