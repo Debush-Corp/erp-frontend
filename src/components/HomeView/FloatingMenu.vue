@@ -200,7 +200,7 @@ nav hr {
         top: 55px;
         width: 100%;
         height: 100dvh;
-        max-height: calc(100dvh - 55px);
+        max-height: calc(100dvh);
         background: #0F1217;
     }
 }
