@@ -58,7 +58,8 @@
                 </div>
             </div>
         </div>
-        <div class="resizer" @mousedown="isDragging = true">
+        <div class="resizer" @mousedown="startDragging"
+        @touchstart.prevent="startDragging">
             <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M2 5.5H14" stroke="#424650" stroke-width="2" />
                 <path d="M14 10.5H2" stroke="#424650" stroke-width="2" />
@@ -74,17 +75,16 @@
 import { ref, onMounted, onBeforeUnmount } from "vue";
 
 const containerRef = ref<HTMLElement | null>(null);
-const topHeight = ref(400); // Altura inicial de la parte superior
+const topHeight = ref(400);
 const isDragging = ref(false);
 
-// Escuchar movimiento del mouse y actualizar altura
-const onMouseMove = (e: MouseEvent) => {
+const onMouseMove = (e: MouseEvent | TouchEvent) => {
     if (!isDragging.value || !containerRef.value) return;
 
+    const clientY = e instanceof MouseEvent ? e.clientY : e.touches[0].clientY;
     const containerRect = containerRef.value.getBoundingClientRect();
-    const newHeight = e.clientY - containerRect.top;
+    const newHeight = clientY - containerRect.top;
 
-    // Limita entre 100px y altura total - 100px
     const min = 100;
     const max = containerRect.height - 100;
     topHeight.value = Math.max(min, Math.min(newHeight, max));
@@ -94,14 +94,22 @@ const stopDragging = () => {
     isDragging.value = false;
 };
 
+const startDragging = () => {
+    isDragging.value = true;
+};
+
 onMounted(() => {
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseup", stopDragging);
+    document.addEventListener("touchmove", onMouseMove, { passive: false });
+    document.addEventListener("touchend", stopDragging);
 });
 
 onBeforeUnmount(() => {
     document.removeEventListener("mousemove", onMouseMove);
     document.removeEventListener("mouseup", stopDragging);
+    document.removeEventListener("touchmove", onMouseMove);
+    document.removeEventListener("touchend", stopDragging);
 });
 </script>
 
