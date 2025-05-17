@@ -2,7 +2,7 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import ErpView from '../views/ErpView.vue'
 import HomeView from '@/views/HomeView.vue'
-import UsersView from '@/views/UsersView.vue'
+import AccessView from '@/views/AccessView.vue'
 import InventoryView from '@/views/InventoryView.vue'
 import ProductsView from '@/views/ProductsView.vue'
 import MaterialsView from '@/views/MaterialsView.vue'
@@ -29,9 +29,10 @@ const routes: Array<RouteRecordRaw> = [
         meta: { requiresAuth: true }
       },
       {
-        path: "/users",
-        name: "users",
-        component: UsersView
+        path: "/access",
+        name: "access",
+        component: AccessView,
+        children: []
       },
       {
         path: "/inventory",

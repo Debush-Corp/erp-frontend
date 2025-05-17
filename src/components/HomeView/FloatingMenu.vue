@@ -1,8 +1,8 @@
 <template>
     <div class="menu">
         <nav>
-            <router-link to="/users" class="menu-button"
-                        :class="{ 'active': $route.path === '/users' }">
+            <router-link to="/access" class="menu-button"
+                        :class="{ 'active': $route.path === '/access' }">
                 <svg width="33" height="33" viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect width="33" height="33" rx="8" fill="white" />
                     <path
@@ -25,7 +25,7 @@
                         fill="#985184" />
                 </svg>
                 <div>
-                    <h2>Usuarios</h2>
+                    <h2>Gestión de accesos</h2>
                     <p>Centraliza la gestión de usuarios del sistema.</p>
                 </div>
             </router-link>

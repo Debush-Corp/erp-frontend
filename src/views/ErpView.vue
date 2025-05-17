@@ -2,6 +2,8 @@
     <div id="erp-view">
         <header v-if="!isMobile" id="head-1">
             <div class="h-head">
+                <img src="../assets/head/logo.png" alt="" height="24px">
+                <div class="vl"></div>
                 <svg @click="handleOpen('menu')" class="icon" id="menu-icon" width="16" height="16" viewBox="0 0 16 16"
                     fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0_42_434)">
@@ -39,8 +41,6 @@
                         </clipPath>
                     </defs>
                 </svg>
-                <div class="vl"></div>
-                <img src="../assets/head/logo.png" alt="" height="24px">
             </div>
             <div class="h-head">
                 <svg class="icon" id="notifications-icon" width="17" height="18" viewBox="0 0 17 18" fill="none"

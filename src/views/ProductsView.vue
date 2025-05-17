@@ -117,6 +117,7 @@ onBeforeUnmount(() => {
 .products-view {
     width: 100%;
     height: 100%;
+    background: #FCFCFD;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -329,7 +330,7 @@ label p {
 @media screen and (max-width: 768px) {
     .top {
         padding: 20px;
-        gap: 15px;
+        gap: 20px;
     }
 
     .top .head-top h3 {

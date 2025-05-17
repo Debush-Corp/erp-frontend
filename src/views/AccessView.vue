@@ -1,5 +1,5 @@
 <template>
-    <div id="inventory-view">
+    <div id="access-view">
         <div class="head">
             <svg :class="sidebarOpen ? 'selected' : 'no-selected'" @click="handleSideBar" width="25" height="25" viewBox="0 0 25 25" fill="none"
                 xmlns="http://www.w3.org/2000/svg">
@@ -13,7 +13,7 @@
             <Transition name="sidebar-transition">
                 <div v-if="sidebarOpen" class="side-bar">
                     <div class="title">
-                        <h2>Inventario</h2>
+                        <h2>Gestión de accesos</h2>
                         <svg @click="handleSideBar" width="8" height="25" viewBox="0 0 8 25" fill="none"
                             xmlns="http://www.w3.org/2000/svg">
                             <path d="M7 18.5L1.35355 12.8536C1.15829 12.6583 1.15829 12.3417 1.35355 12.1464L7 6.5"
@@ -22,11 +22,11 @@
                     </div>
                     <hr>
                     <nav>
-                        <router-link to="/products" class="sidebar-li" :class="{ 'active': $route.path === '/users' }">
-                            <h3>Productos</h3>
+                        <router-link to="/users" class="sidebar-li" :class="{ 'active': $route.path === '/users' }">
+                            <h3>Usuarios</h3>
                         </router-link>
-                        <router-link to="/materials" class="sidebar-li" :class="{ 'active': $route.path === '/users' }">
-                            <h3>Insumos</h3>
+                        <router-link to="/materials" class="sidebar-li" :class="{ 'active': $route.path === '/access' }">
+                            <h3>Roles y permisos</h3>
                         </router-link>
                     </nav>
                 </div>
@@ -55,7 +55,7 @@ p {
     font-family: sans-serif;
 }
 
-#inventory-view {
+#access-view {
     width: 100%;
     height: 100%;
     display: flex;
@@ -65,12 +65,11 @@ p {
 .head {
     width: 100%;
     height: 50px;
-    background: #fff;
     display: flex;
     align-items: center;
     justify-content: start;
     box-sizing: border-box;
-    border-bottom: 1px solid #C6C6CD;
+    border-bottom: 1px solid #B4B4BB;
 }
 
 .head .no-selected:hover .bg {
@@ -83,6 +82,7 @@ p {
 .head .selected .stroke {
     fill: #fff;
 }
+
 
 .body {
     position: relative;
@@ -102,7 +102,7 @@ p {
 .side-bar {
     height: 100%;
     background: #fff;
-    border-right: 1px solid #C6C6CD;
+    border-right: 1px solid #B4B4BB;
     box-sizing: border-box;
 }
 
@@ -149,13 +149,13 @@ nav .sidebar-li h3 {
 
 @media screen and (min-width: 769px) {
     .head {
-        padding: 0px 25px;
+        padding: 0px 15px;
     }
 
     .side-bar {
         position: relative;
-        width: 250px;
-        padding: 20px 25px;
+        width: 300px;
+        padding: 20px;
     }
 
     .sidebar-transition-enter-active,
@@ -165,7 +165,7 @@ nav .sidebar-li h3 {
 
     .sidebar-transition-enter-from,
     .sidebar-transition-leave-to {
-        margin-left: -250px;
+        margin-left: -300px;
     }
 
     .sidebar-transition-enter-to,
@@ -189,9 +189,11 @@ nav .sidebar-li h3 {
 
     .side-bar {
         position: absolute;
-        width: 200px;
+        width: auto;
+        min-width: 200px;
+        max-width: 240px;
         z-index: 2;
-        padding: 20px;
+        padding: 15px 20px;
     }
 
     .sidebar-transition-enter-active,
@@ -209,8 +211,16 @@ nav .sidebar-li h3 {
         left: 0px;
     }
 
+    .title {
+        gap: 10px;
+    }
+
     .title h2 {
         font-size: 16px;
+    }
+
+    .side-bar hr {
+        margin-top: 15px;
     }
 
     nav .sidebar-li h3 {
