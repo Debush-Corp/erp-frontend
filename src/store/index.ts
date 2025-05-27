@@ -38,7 +38,7 @@ export default createStore<AuthState>({
         axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
         // Obtenemos los datos del usuario desde /me/
-        const userResponse = await axios.get<User>('/api/auth/me/');
+        const userResponse = await axios.get<User>('/api/accounts/me/');
         console.log(`user: ${JSON.stringify(userResponse.data)}`)
         commit('setUser', userResponse.data);
       } catch (error) {

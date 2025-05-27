@@ -145,7 +145,7 @@
             </div>
         </header>
         <transition name="menu-transition">
-            <FloatingMenu v-if="isOpen['menu']" v-click-outside="() => handleClose('menu')" />
+            <FloatingMenu v-if="isOpen['menu']" v-click-outside="() => handleClose('menu')" @section-selected="handleClose('menu')" />
         </transition>
         <transition name="user-transition">
             <FloatingUser v-if="isOpen['user']" v-click-outside="() => handleClose('user')" />
@@ -156,8 +156,8 @@
     </div>
 </template>
 <script setup>
-import FloatingMenu from '@/components/HomeView/FloatingMenu.vue';
-import FloatingUser from '@/components/HomeView/FloatingUser.vue';
+import FloatingMenu from '@/components/Floatings/FloatingMenu.vue';
+import FloatingUser from '@/components/Floatings/FloatingUser.vue';
 import { ref, reactive, onMounted, onUnmounted } from 'vue';
 const isMobile = ref(window.innerWidth <= 768)
 const checkViewport = () => {

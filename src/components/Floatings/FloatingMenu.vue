@@ -2,7 +2,7 @@
     <div class="menu">
         <nav>
             <router-link to="/access" class="menu-button"
-                        :class="{ 'active': $route.path === '/access' }">
+                        :class="{ 'active': $route.path === '/access' }" @click="selectSection">
                 <svg width="33" height="33" viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect width="33" height="33" rx="8" fill="white" />
                     <path
@@ -31,7 +31,7 @@
             </router-link>
             <hr>
             <router-link to="/inventory" class="menu-button"
-                        :class="{ 'active': $route.path === '/inventory' }">
+                        :class="{ 'active': $route.path === '/inventory' }" @click="selectSection">
                 <svg width="33" height="33" viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect width="33" height="33" rx="8" fill="white" />
                     <path d="M16.5 6.42L19.7913 8.34L11.94 13.62V21.3L12.18 24.06L7.85999 21.54V11.46L16.5 6.42Z"
@@ -49,7 +49,7 @@
             </router-link>
             <hr>
             <router-link to="/fabrication" class="menu-button"
-                        :class="{ 'active': $route.path === '/fabrication' }">
+                        :class="{ 'active': $route.path === '/fabrication' }" @click="selectSection">
                 <svg width="33" height="33" viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect width="33" height="33" rx="8" fill="white" />
                     <path
@@ -75,7 +75,7 @@
             </router-link>
             <hr>
             <router-link to="/market" class="menu-button"
-                        :class="{ 'active': $route.path === '/market' }">
+                        :class="{ 'active': $route.path === '/market' }" @click="selectSection">
                 <svg width="33" height="33" viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect width="33" height="33" rx="8" fill="white" />
                     <g clip-path="url(#clip0_527_1351)">
@@ -105,7 +105,7 @@
             </router-link>
             <hr>
             <router-link to="/sales" class="menu-button"
-                        :class="{ 'active': $route.path === '/sales' }">
+                        :class="{ 'active': $route.path === '/sales' }" @click="selectSection">
                 <svg width="33" height="33" viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect width="33" height="33" rx="8" fill="white" />
                     <path
@@ -131,6 +131,16 @@
         </nav>
     </div>
 </template>
+
+<script setup>
+import { defineEmits } from 'vue';
+
+const emit = defineEmits(['section-selected']);
+
+const selectSection = () => {
+  emit('section-selected');
+};
+</script>
 
 <style scoped>
 .menu {
