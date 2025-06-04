@@ -23,7 +23,7 @@
                     <hr>
                     <nav>
                         <router-link to="/users" class="sidebar-li" :class="{ 'active': $route.path === '/users' }">
-                            <h3>Usuarios</h3>
+                            <h3>Usuarios del sistema</h3>
                         </router-link>
                         <router-link to="/materials" class="sidebar-li" :class="{ 'active': $route.path === '/access' }">
                             <h3>Roles y permisos</h3>
@@ -31,9 +31,7 @@
                     </nav>
                 </div>
             </Transition>
-            <div class="content">
                 <router-view></router-view>
-            </div>
         </div>
     </div>
 </template>
@@ -65,6 +63,7 @@ p {
 .head {
     width: 100%;
     height: 50px;
+    background: #fbfbfb;
     display: flex;
     align-items: center;
     justify-content: start;
@@ -147,6 +146,10 @@ nav .sidebar-li h3 {
     color: #424650;
 }
 
+nav .active h3 {
+    color: #006CE0;
+}
+
 @media screen and (min-width: 769px) {
     .head {
         padding: 0px 15px;
@@ -155,6 +158,7 @@ nav .sidebar-li h3 {
     .side-bar {
         position: relative;
         width: 300px;
+        min-width: 250px;
         padding: 20px;
     }
 

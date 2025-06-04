@@ -16,3 +16,10 @@ export interface AuthState {
     user: User | null;    // El usuario puede estar autenticado o no
     token: string | null;  // El token de acceso puede ser null si no hay sesión activa
 }
+
+export interface PaginatedResponse<T> {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    results: T[];
+  }

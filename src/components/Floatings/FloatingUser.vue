@@ -54,7 +54,7 @@ const user = computed(() => store.getters.getUser)
 
 const handleLogout = async () => {
     try {
-        await store.dispatch('logout')
+        await store.dispatch('auth/logout')
         router.push('/login')
     } catch (error) {
         console.error('Error al cerrar sesión:', error)

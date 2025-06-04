@@ -58,7 +58,7 @@ const handleLogin = async () => {
     success.value = false;
 
     try {
-        await store.dispatch('login', {
+        await store.dispatch('auth/login', {
             username: username.value,
             password: password.value,
         });
