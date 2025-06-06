@@ -156,8 +156,8 @@
     </div>
 </template>
 <script setup>
-import FloatingMenu from '@/components/Floatings/FloatingMenu.vue';
-import FloatingUser from '@/components/Floatings/FloatingUser.vue';
+import FloatingMenu from '@/components/floatings/FloatingMenu.vue';
+import FloatingUser from '@/components/floatings/FloatingUser.vue';
 import { ref, reactive, onMounted, onUnmounted } from 'vue';
 const isMobile = ref(window.innerWidth <= 768)
 const checkViewport = () => {

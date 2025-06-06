@@ -112,6 +112,8 @@ const smainDragging = () => {
     isDragging.value = false;
 };
 
+
+
 </script>
 
 <style>

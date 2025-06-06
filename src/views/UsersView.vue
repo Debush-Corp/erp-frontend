@@ -4,27 +4,32 @@
             <div class="head-main">
                 <h3>Usuarios <span>(100)</span></h3>
                 <div class="buttons">
-                    <svg @click="fetchUsers(currentPage)" class="btn" id="btn-refresh" width="34" height="35" viewBox="0 0 34 35" fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <rect x="1" y="1.5" width="32" height="32" rx="16" stroke="#006CE0" stroke-width="2" />
-                        <mask class="bg-svg" id="path-2-inside-1_181_2389" fill="white">
-                            <path
-                                d="M26 17.5C26 22.4757 21.9757 26.5 17 26.5C12.0243 26.5 8 22.4757 8 17.5C8 12.5243 12.0243 8.5 17 8.5C20.5871 8.5 23.6857 10.5957 25.1386 13.6429" />
-                        </mask>
-                        <path class="line-svg" 
-                            d="M24 17.5C24 21.3711 20.8711 24.5 17 24.5V28.5C23.0803 28.5 28 23.5803 28 17.5H24ZM17 24.5C13.1289 24.5 10 21.3711 10 17.5H6C6 23.5803 10.9197 28.5 17 28.5V24.5ZM10 17.5C10 13.6289 13.1289 10.5 17 10.5V6.5C10.9197 6.5 6 11.4197 6 17.5H10ZM17 10.5C19.7869 10.5 22.1995 12.1257 23.3333 14.5036L26.9439 12.7821C25.1719 9.06568 21.3874 6.5 17 6.5V10.5Z"
-                            fill="#006CE0" mask="url(#path-2-inside-1_181_2389)" />
-                        <mask id="path-4-inside-2_181_2389" fill="white">
-                            <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M19.5723 15.5197L26.0008 15.5711V9.14258H24.0723V13.6426H19.5723V15.5197Z" />
-                        </mask>
-                        <path  class="line-svg"
-                            d="M19.5723 15.5197H16.5723V18.4958L19.5483 18.5196L19.5723 15.5197ZM26.0008 15.5711L25.9768 18.5711L29.0008 18.5952V15.5711H26.0008ZM26.0008 9.14258H29.0008V6.14258H26.0008V9.14258ZM24.0723 9.14258V6.14258H21.0723V9.14258H24.0723ZM24.0723 13.6426V16.6426H27.0723V13.6426H24.0723ZM19.5723 13.6426V10.6426H16.5723V13.6426H19.5723ZM24.0723 12.1426H26.0008V6.14258H24.0723V12.1426ZM21.0723 9.14258V13.6426H27.0723V9.14258H21.0723ZM24.0723 10.6426H19.5723V16.6426H24.0723V10.6426ZM22.5723 15.5197V13.6426H16.5723V15.5197H22.5723ZM26.0248 12.5712L19.5963 12.5198L19.5483 18.5196L25.9768 18.5711L26.0248 12.5712ZM23.0008 9.14258V15.5711H29.0008V9.14258H23.0008Z"
-                            fill="#006CE0" mask="url(#path-4-inside-2_181_2389)" />
-                    </svg>
-                    <button class="btn btn-1" id="btn-delete" @click="deleteUsers" :disabled="receivedItems.length === 0">Eliminar</button>
-                    <button class="btn btn-1" id="btn-edit" :disabled="receivedItems.length !== 1">Editar</button>
-                    <button class="btn btn-2" id="btn-create">Crear usuario</button>
+                    <button class="btn" id="btn-refresh" @click="fetchUsers(currentPage)" :disabled="isLoading">
+                        <img v-if="isLoading" alt="btn-refresh" src="@/assets/icons/loaders/loader-refresh.gif">
+                        <svg v-else width="18" height="19" viewBox="0 0 18 19" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <mask class="bg-svg" id="path-1-inside-1_122_1322" fill="white">
+                                <path
+                                    d="M17.9995 9.5C17.9995 14.4757 13.9752 18.5 8.99951 18.5C4.0238 18.5 -0.000488281 14.4757 -0.000488281 9.5C-0.000488281 4.52429 4.0238 0.5 8.99951 0.5C12.5867 0.5 15.6852 2.59571 17.1381 5.64286" />
+                            </mask>
+                            <path class="line-svg"
+                                d="M15.9995 9.5C15.9995 13.3711 12.8707 16.5 8.99951 16.5V20.5C15.0798 20.5 19.9995 15.5803 19.9995 9.5H15.9995ZM8.99951 16.5C5.12837 16.5 1.99951 13.3711 1.99951 9.5H-2.00049C-2.00049 15.5803 2.91923 20.5 8.99951 20.5V16.5ZM1.99951 9.5C1.99951 5.62886 5.12837 2.5 8.99951 2.5V-1.5C2.91923 -1.5 -2.00049 3.41972 -2.00049 9.5H1.99951ZM8.99951 2.5C11.7864 2.5 14.199 4.12575 15.3328 6.50361L18.9434 4.7821C17.1714 1.06568 13.3869 -1.5 8.99951 -1.5V2.5Z"
+                                fill="#006CE0" mask="url(#path-1-inside-1_122_1322)" />
+                            <mask id="path-3-inside-2_122_1322" fill="white">
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                    d="M11.5713 7.51972L17.9999 7.57115V1.14258H16.0713V5.64258H11.5713V7.51972Z" />
+                            </mask>
+                            <path class="line-svg"
+                                d="M11.5713 7.51972H8.57129V10.4958L11.5473 10.5196L11.5713 7.51972ZM17.9999 7.57115L17.9759 10.5711L20.9999 10.5952V7.57115H17.9999ZM17.9999 1.14258H20.9999V-1.85742H17.9999V1.14258ZM16.0713 1.14258V-1.85742H13.0713V1.14258H16.0713ZM16.0713 5.64258V8.64258H19.0713V5.64258H16.0713ZM11.5713 5.64258V2.64258H8.57129V5.64258H11.5713ZM16.0713 4.14258H17.9999V-1.85742H16.0713V4.14258ZM13.0713 1.14258V5.64258H19.0713V1.14258H13.0713ZM16.0713 2.64258H11.5713V8.64258H16.0713V2.64258ZM14.5713 7.51972V5.64258H8.57129V7.51972H14.5713ZM18.0239 4.57125L11.5953 4.51982L11.5473 10.5196L17.9759 10.5711L18.0239 4.57125ZM14.9999 1.14258V7.57115H20.9999V1.14258H14.9999Z"
+                                fill="#006CE0" mask="url(#path-3-inside-2_122_1322)" />
+                        </svg>
+                    </button>
+                    <button class="btn" id="btn-delete" v-once-click="deleteUsers"
+                        :disabled="receivedItems.length === 0">Eliminar</button>
+                    <button class="btn" id="btn-edit" :disabled="receivedItems.length !== 1"
+                        @click="handleModal($event), handleForm('userEdite')">Editar</button>
+                    <button class="btn" id="btn-create" @click="handleModal($event), handleForm('userCreate')">Crear
+                        usuario</button>
                 </div>
             </div>
             <div class="medium-main">
@@ -37,7 +42,8 @@
                     </button>
                     <button v-for="i in pageSize" :key="i" class="btn-page"
                         :class="{ 'selected-page': currentPage === firstPage + i - 1 }"
-                        :disabled="totalPages < firstPage + i - 1 || data.length == 0" @click="handlePagination(firstPage + i - 1)">
+                        :disabled="totalPages < firstPage + i - 1 || data.length == 0"
+                        @click="handlePagination(firstPage + i - 1)">
                         {{ firstPage + i - 1 }}
                     </button>
                     <p v-if="firstPage + pageSize <= totalPages">...</p>
@@ -50,7 +56,7 @@
                     </button>
                 </div>
             </div>
-            <TableList :columns="columns" :data="data" @update:selectedItems="handleItems"/>
+            <TableList :columns="columns" :data="data" @update:selectedItems="handleItems" />
         </div>
         <div class="resizer" @mousedown="startDragging" @touchstart.prevent="startDragging">
             <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -61,14 +67,23 @@
         <div class="details" :style="{ height: `calc(100% - ${mainHeight}px - 6px)` }">
             <h3>Seleccione un producto <span></span></h3>
         </div>
+        <transition name="modal-transition">
+            <div v-if="modalOpen" class="over" @click="handleModal">
+                <CreateUserForm v-if="form === 'userCreate'" />
+            </div>
+        </transition>
     </div>
 </template>
 
 <script setup lang="ts">
+import CreateUserForm from "@/components/forms/CreateUserForm.vue";
 import { ref, onMounted, onBeforeUnmount, onBeforeMount, watch } from "vue";
-import TableList from "@/components/Tables/TableListX.vue";
+import TableList from "@/components/tables/TableListX.vue";
 import store from "@/store";
 
+const isLoading = ref(false)
+const modalOpen = ref(false)
+const form = ref('')
 const pageSize = 3
 const firstPage = ref(1)
 const currentPage = ref(1)
@@ -104,6 +119,7 @@ const startDragging = () => {
 const fetchUsers = async (page: number) => {
     console.log("fetch users")
     try {
+        isLoading.value = true
         const res = await store.dispatch('accounts/fetchUsers', { page: page });
         if (res && res.results && res.results.length > 0) {
             columns.value = Object.keys(res.results[0]).map((key) => ({
@@ -113,8 +129,10 @@ const fetchUsers = async (page: number) => {
         }
         totalPages.value = res.total_pages;
         data.value = res.results;
+        isLoading.value = false
     } catch (error) {
         console.error('Error al obtener usuarios:', error);
+        isLoading.value = false
     }
 };
 
@@ -126,6 +144,18 @@ const handlePagination = (page: number) => {
 
 const handleIndex = (val: number) => {
     firstPage.value = firstPage.value + val
+}
+
+const handleModal = (event: MouseEvent) => {
+    const target = event.target as HTMLElement
+    const currentTarget = event.currentTarget as HTMLElement
+    if (target === currentTarget) {
+        modalOpen.value = !modalOpen.value
+    }
+}
+
+const handleForm = (nameForm: string) => {
+    form.value = nameForm
 }
 
 onBeforeMount(async () => {
@@ -152,20 +182,20 @@ onBeforeUnmount(() => {
 
 const receivedItems = ref<number[]>([])
 const handleItems = (items: number[]) => {
-  receivedItems.value = items
+    receivedItems.value = items
 }
 
 const deleteUsers = async () => {
-  try {
-    for (const id of receivedItems.value) {
-      await store.dispatch('accounts/deleteUser', id);
+    try {
+        for (const id of receivedItems.value) {
+            await store.dispatch('accounts/deleteUser', id);
+        }
+        receivedItems.value = [];
+        console.log('Usuarios eliminados exitosamente');
+    } catch (error) {
+        console.error('Error al eliminar usuarios:', error);
     }
-    receivedItems.value = [];
-    console.log('Usuarios eliminados exitosamente');
-  } catch (error) {
-    console.error('Error al eliminar usuarios:', error);
-  }
-  //await fetchUsers(currentPage.value);
+    //await fetchUsers(currentPage.value);
 };
 </script>
 
@@ -228,11 +258,6 @@ p {
     cursor: pointer;
 }
 
-.main .head-main svg {
-    height: 100%;
-    width: auto;
-}
-
 .main .head-main button {
     height: 100%;
     box-sizing: border-box;
@@ -244,19 +269,38 @@ p {
     font-weight: bold;
 }
 
-.main .medium-main {
-    width: 100%;
-    height: auto;
+
+#btn-refresh {
+    padding: 0;
+    border: 2px solid #006CE0;
+    aspect-ratio: 1 / 1;
+    background: #fff;
     display: flex;
-    flex-direction: row;
-    align-items: start;
+    justify-content: center;
+    align-items: center;
 }
 
-#btn-refresh:hover {
-    fill: #006CE0;
-    .line-svg {
-        fill: #fff;
-    }
+#btn-refresh:disabled {
+    border: 2px solid #B4B4BB;
+}
+
+#btn-refresh img {
+    width: 80%;
+    height: auto;
+}
+
+#btn-refresh svg {
+    width: 65%;
+    height: auto;
+}
+
+#btn-refresh:enabled:hover {
+    background: #F0FBFF;
+    border: 2px solid #012B66;
+}
+
+#btn-refresh:hover svg .line-svg {
+    fill: #012B66;
 }
 
 #btn-delete,
@@ -274,7 +318,7 @@ p {
 
 #btn-delete:enabled:hover,
 #btn-edit:enabled:hover {
-    background: #006CE0;
+    background: #012B66;
     color: #fff;
 }
 
@@ -286,6 +330,14 @@ p {
 
 #btn-create:hover {
     background: #ffb056;
+}
+
+.main .medium-main {
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: start;
 }
 
 .main .medium-main .labels {
@@ -391,6 +443,38 @@ label p {
     cursor: row-resize;
     display: flex;
     justify-content: center;
+}
+
+.over {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 4;
+    width: 100dvw;
+    height: calc(100dvh - 56.22px);
+    background: rgba(2, 15, 33, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.modal-transition-enter-active,
+.modal-transition-leave-active {
+    transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    /*transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);*/
+}
+
+.modal-transition-enter-from,
+.modal-transition-leave-to {
+    opacity: 0;
+    /*transform: translateY(-650px);*/
+}
+
+.modal-transition-enter-to,
+.modal-transition-leave-from {
+    opacity: 1;
+    /*transform: translateY(0px);*/
 }
 
 @media screen and (min-width: 769px) {

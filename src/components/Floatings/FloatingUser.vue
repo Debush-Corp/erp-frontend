@@ -50,7 +50,7 @@ import { computed } from 'vue'
 const store = useStore()
 const router = useRouter()
 
-const user = computed(() => store.getters.getUser)
+const user = computed(() => store.getters['auth/getUser'])
 
 const handleLogout = async () => {
     try {
