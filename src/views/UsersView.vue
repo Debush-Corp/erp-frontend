@@ -78,7 +78,7 @@
 <script setup lang="ts">
 import CreateUserForm from "@/components/forms/CreateUserForm.vue";
 import { ref, onMounted, onBeforeUnmount, onBeforeMount, watch } from "vue";
-import TableList from "@/components/tables/TableListX.vue";
+import TableList from "@/components/tables/TableList.vue";
 import store from "@/store";
 
 const isLoading = ref(false)
