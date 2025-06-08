@@ -1,56 +1,41 @@
 <template>
-    <div class="scroll-wrapper" :class="{ 'is-mobile': isMobile }">
-        <div class="scrollable-content">
-            <table>
+    <div class="wrapper">
+        <div class="content">
+            <table style="min-width: 100%; width: auto;">
                 <thead>
                     <tr>
-                        <th class="first-th">
-                            <div class="th-box">
-                                <input type="checkbox" @change="toggleAll" ref="boxMasterRef" />
-                                <div class="resize-handle">
-                                    <div class="resizer"></div>
-                                </div>
-                            </div>
+                        <th>
+                            <input type="checkbox" name="cb-master" id="cb-master" ref="boxMasterRef"
+                                @change="toggleAllBox" />
                         </th>
-                        <th v-for="(column, index) in columns" :key="index"
-                            :style="{ width: columnWidths[index] + 'px' }">
+                        <th v-for="(column, i) in columns" :key="i">
                             <div class="th-box">
-                                <div class="th-content">
-                                    <p>{{ column.header }}</p>
-                                    <svg width="11" height="9" viewBox="0 0 11 9" fill="none"
-                                        xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M6.10547 7.22949C5.91844 7.48846 5.54539 7.50474 5.33496 7.27832L5.29492 7.22949L1.73145 2.29297C1.4928 1.96229 1.72989 1.5 2.1377 1.5L9.2627 1.5C9.64505 1.5 9.8773 1.90625 9.70801 2.22949L9.66895 2.29297L6.10547 7.22949Z"
-                                            stroke="#0F141A" stroke-width="2" />
-                                    </svg>
-                                </div>
-                                <div v-if="index + 1 < columns.length" class="resize-handle"
-                                    @mousedown="startResize($event, index)">
-                                    <div class="resizer"></div>
-                                </div>
+                                <span>{{ column.header }}</span>
+                                <svg width="11" height="9" viewBox="0 0 11 9" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M6.10547 7.22949C5.91844 7.48846 5.54539 7.50474 5.33496 7.27832L5.29492 7.22949L1.73145 2.29297C1.4928 1.96229 1.72989 1.5 2.1377 1.5L9.2627 1.5C9.64505 1.5 9.8773 1.90625 9.70801 2.22949L9.66895 2.29297L6.10547 7.22949Z"
+                                        stroke="#0F141A" stroke-width="2" />
+                                </svg>
                             </div>
                         </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <template v-for="(row, rowIndex) in data" :key="rowIndex">
-                        <tr :class="{ 'row-hover': selectedRows.includes(rowIndex), 'row': true }">
-                            <td class="first-td">
-                                <input type="checkbox" @click="toggleBox(rowIndex)"
-                                    :ref="el => boxRefs[rowIndex] = el" />
+                    <template v-for="(row, i) in data" :key="row.id">
+                        <tr :class="{ 'row-selected': selectedItems.includes(row.id) }">
+                            <td>
+                                <input type="checkbox" :name="'cb-slave-' + row.id" :id="'cb-slave-' + row.id"
+                                    :ref="(box) => (boxSlaveRefs[row.id] = box)"
+                                    :checked="selectedItems.includes(row.id)" @change="toggleBox(row.id)" />
                             </td>
-                            <td v-for="(column, colIndex) in columns" :key="colIndex"
-                                :style="{ width: isMobile ? 'auto' : columnWidths[colIndex] + 'px' }">
-                                {{ row[column.key] }}
+                            <td v-for="(column, j) in columns" :key="j">
+                                <span>{{ row[column.key] }}</span>
                             </td>
                         </tr>
-                        <tr class="tr-separator">
-                            <td>
-                                <div></div>
-                            </td>
-                            <td v-for="(column, colIndex) in columns" :key="colIndex"
-                                :style="{ width: isMobile ? 'auto' : columnWidths[colIndex] + 'px' }">
-                                <div></div>
+                        <tr v-if="i < data.length" class="box-separator">
+                            <td :colspan="columns.length + 1" class="row-separator">
+                                <div class="separator"></div>
                             </td>
                         </tr>
                     </template>
@@ -61,123 +46,83 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, defineProps } from 'vue';
+import { defineProps, ref, watch, defineEmits, nextTick, onMounted, onUnmounted } from 'vue';
+import { debounce } from 'lodash'; // Asegúrate de instalar lodash: npm install lodash
 
-// Props
 const props = defineProps({
     columns: {
         type: Array,
-        required: true, // Ejemplo: [{ header: 'Nombre', key: 'name' }, { header: 'Edad', key: 'age' }]
+        required: true,
     },
     data: {
         type: Array,
-        required: true, // Ejemplo: [{ name: 'Juan', age: 30 }, { name: 'Ana', age: 25 }]
+        required: true,
     },
 });
 
-// Reactive state
-const isMobile = ref(false);
-const columnWidths = ref(props.columns.map(() => 150)); // Initial width in px for each column
-const boxMasterRef = ref(false);
-const boxRefs = ref([]);
-const selectedRows = ref([]);
-let resizingIndex = null;
-let startX = 0;
+const emit = defineEmits(['update:selectedItems']);
 
-// Detect mobile
-const checkMobile = () => {
-    isMobile.value = window.innerWidth <= 768; // Consider mobile <= 768px
-};
+const boxMasterRef = ref(null);
+const boxSlaveRefs = ref([]);
+const selectedItems = ref([]);
 
-// Start resizing
-const startResize = (event, index) => {
-    if (isMobile.value) return; // Prevent resizing on mobile
-    if (event.target.classList.contains('resize-handle')) {
-        resizingIndex = index;
-        startX = event.clientX;
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', stopResize);
-        console.log('Ancho cambiado');
-    }
-};
-
-// Handle mouse movement
-const handleMouseMove = (event) => {
-    if (resizingIndex !== null) {
-        const delta = event.clientX - startX;
-        const newWidths = [...columnWidths.value];
-        newWidths[resizingIndex] = Math.max(100, newWidths[resizingIndex] + delta); // Minimum 100px
-        columnWidths.value = newWidths;
-        startX = event.clientX;
-    }
-};
-
-// Stop resizing
-const stopResize = () => {
-    resizingIndex = null;
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', stopResize);
-};
-
-// Toggle all checkboxes
-const toggleAll = () => {
-    const allChecked = selectedRows.value.length === props.data.length;
-    if (allChecked || selectedRows.value.length === 0) {
-        // If all are checked or none are checked, toggle all
-        boxRefs.value.forEach((boxRef) => {
-            boxRef.checked = !boxRef.checked;
-        });
+const toggleBox = (id) => {
+    const index = selectedItems.value.indexOf(id);
+    if (index !== -1) {
+        selectedItems.value.splice(index, 1);
     } else {
-        // If mixed, check only unchecked boxes
-        boxRefs.value.forEach((boxRef) => {
-            if (!boxRef.checked) {
-                boxRef.checked = true;
-            }
-        });
+        selectedItems.value.push(id);
     }
-    // Update selectedRows based on actual checkbox state
-    selectedRows.value = boxRefs.value
-        .map((boxRef, idx) => (boxRef.checked ? idx : -1))
-        .filter((idx) => idx !== -1);
+    boxMasterRef.value.checked = selectedItems.value.length === props.data.length;
+    emit('update:selectedItems', [...selectedItems.value]);
 };
 
-// Toggle individual checkbox
-const toggleBox = (index) => {
-    const pos = selectedRows.value.indexOf(index);
-    if (pos === -1) {
-        selectedRows.value.push(index);
-    } else {
-        selectedRows.value.splice(pos, 1);
-    }
-    if (selectedRows.value.length === props.data.length) {
-        boxMasterRef.value.checked = true;
-    } else {
-        boxMasterRef.value.checked = false;
-    }
-    console.log(`selectedRows: ${selectedRows.value}`);
+const toggleAllBox = () => {
+    const allChecked = selectedItems.value.length === props.data.length;
+    selectedItems.value = allChecked ? [] : props.data.map((row) => row.id);
+
+    Object.values(boxSlaveRefs.value).forEach((box) => {
+        if (box) {
+            box.checked = !allChecked;
+        }
+    });
+
+    emit('update:selectedItems', [...selectedItems.value]);
 };
 
-// Lifecycle hooks
-onMounted(() => {
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-});
+// Sincronizar selectedItems, boxSlaveRefs y rowsRef cuando cambian los datos
+watch(
+    () => props.data,
+    async (newData) => {
+        // Limpiar selectedItems de IDs que ya no existen
+        selectedItems.value = selectedItems.value.filter((id) =>
+            newData.some((row) => row.id === id)
+        );
+        // Reiniciar boxSlaveRefs y rowsRef
+        boxSlaveRefs.value = {};
 
-onUnmounted(() => {
-    window.removeEventListener('resize', checkMobile);
-});
+        // Esperar a que el DOM se renderice
+        await nextTick();
+
+        // Actualizar el checkbox maestro
+        if (boxMasterRef.value) {
+            boxMasterRef.value.checked = selectedItems.value.length === newData.length;
+        }
+        emit('update:selectedItems', [...selectedItems.value]);
+    },
+    { deep: true }
+);
 </script>
 
-<style scoped>
-.scroll-wrapper {
+<style scoped lang="scss">
+.wrapper {
     position: relative;
     overflow: hidden;
     font-family: sans-serif;
-    font-size: 14px;
     container-type: inline-size;
 }
 
-.scrollable-content {
+.content {
     height: 100%;
     max-width: auto;
     min-width: 100%;
@@ -189,216 +134,153 @@ table {
     margin: 0;
     padding: 0;
     height: auto;
-    border-collapse: collapse;
     table-layout: fixed;
-    border: 2px solid transparent;
-}
-
-@container (min-width: 1200px) {
-    table {
-        width: 100%;
-    }
-}
-
-@container (max-width: 1199px) {
-    table {
-        width: auto;
-    }
+    border-collapse: separate;
+    border-spacing: 0px;
 }
 
 thead {
     position: sticky;
     top: 0;
     z-index: 1;
-    color: #0f141a;
-    background: #fafafa;
 }
 
 th {
+    height: 20px;
+    background: #FAFAFA;
     position: relative;
-    height: 20px;
-    background: #fafafa;
-    box-shadow: inset 0 -1px 0 0 #c6c6cd;
+    border-collapse: separate;
+    box-sizing: border-box;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    padding-left: 8px;
+    padding-right: 8px;
+    font-weight: 700;
+    color: #0F141A;
+    border-bottom: 2px solid #C6C6CD;
 }
 
-.first-th {
-    padding: 4px 0 4px 8px;
-}
-
-.th-content {
-    width: auto;
-    height: auto;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 15px;
-}
-
-.th-content p {
-    margin: 0;
-}
-
-thead .first-th {
-    width: 30px;
-}
-
-thead .first-th .th-box {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-width: 20px;
-}
-
-thead .resize-handle {
-    cursor: col-resize;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-thead .resizer {
+th::after {
+    content: '';
+    position: absolute;
+    top: 25%;
+    right: 0px;
+    height: 50%;
     width: 2px;
-    height: 80%;
-    background: #8c8c94;
+    border-radius: 2px;
+    background: #8C8C94;
+    cursor: col-resize;
 }
 
-.first-th .th-box .resize-handle:hover .resizer {
-    background: #8c8c94;
+/* latest th */
+th:last-child::after {
+    display: none;
 }
 
-th:not(.first-th) .th-box {
+thead th:first-child {
+    width: 38px;
+}
+
+thead th .th-box {
     width: auto;
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
     gap: 10px;
+    align-items: center;
 }
 
-tbody tr {
-    background: #fcfcfd;
+tbody td {
     box-sizing: border-box;
-    padding-top: 30px;
-    padding-bottom: 30px;
-}
-
-tbody .first-td {
-    padding: 4px 0 4px 8px;
-}
-
-tbody tr .first-td {
-    width: 20px;
-}
-
-tbody tr td {
-    font-size: 13px;
-    text-wrap: wrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    background: #fcfcfd;
-    box-shadow:
-        inset 0 2px 0 0 #fcfcfd,
-        inset 0 -2px 0 0 #fcfcfd,
-        inset 2px 0 0 0 #fcfcfd,
-        inset 2px 0 0 0 #fcfcfd;
-    transition: box-shadow 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), background 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-tbody .tr-separator {
-    width: 100%;
-}
-
-tbody .tr-separator td {
-    padding: 1px 0;
-    height: 4px;
-}
-
-tbody .tr-separator td div {
-    height: 1px;
-    background: #e6e6eb;
-}
-
-tbody tr.row:hover td {
-    background: #f0fbff;
-}
-
-tbody tr.row>*:not(:first-child):not(:last-child) {
-    box-shadow: inset 0 2px 0 0 transparent, inset 0 -2px 0 0 transparent;
-}
-
-tbody tr.row> :first-child {
-    border-radius: 8px 0 0 8px;
-    box-shadow: inset 0 2px 0 0 transparent, inset 0 -2px 0 0 transparent, inset 2px 0 0 0 transparent;
-}
-
-tbody tr.row> :last-child {
-    border-radius: 0 8px 8px 0;
-    box-shadow: inset 0 2px 0 0 transparent, inset 0 -2px 0 0 transparent, inset -2px 0 0 0 transparent;
-}
-
-tbody tr.row:hover>*:not(:first-child):not(:last-child) {
-    box-shadow: inset 0 2px 0 0 #006ce0, inset 0 -2px 0 0 #006ce0;
-}
-
-tbody tr.row:hover> :first-child {
-    border-radius: 8px 0 0 8px;
-    box-shadow: inset 0 2px 0 0 #006ce0, inset 0 -2px 0 0 #006ce0, inset 2px 0 0 0 #006ce0;
-}
-
-tbody tr.row:hover> :last-child {
-    border-radius: 0 8px 8px 0;
-    box-shadow: inset 0 2px 0 0 #006ce0, inset 0 -2px 0 0 #006ce0, inset -2px 0 0 0 #006ce0;
-}
-
-tbody tr.row-hover td {
-    background: #f0fbff;
-}
-
-tbody tr.row-hover>*:not(:first-child):not(:last-child) {
-    box-shadow: inset 0 2px 0 0 #006ce0, inset 0 -2px 0 0 #006ce0;
-}
-
-tbody tr.row-hover> :first-child {
-    border-radius: 8px 0 0 8px;
-    box-shadow: inset 0 2px 0 0 #006ce0, inset 0 -2px 0 0 #006ce0, inset 2px 0 0 0 #006ce0;
-}
-
-tbody tr.row-hover> :last-child {
-    border-radius: 0 8px 8px 0;
-    box-shadow: inset 0 2px 0 0 #006ce0, inset 0 -2px 0 0 #006ce0, inset -2px 0 0 0 #006ce0;
-}
-
-td {
-    height: 34px;
-}
-
-th:not(.first-th),
-td:not(.first-td) {
-    padding: 4px 0 4px 0;
-    box-sizing: border-box;
-}
-
-td:not(.first-td) {
-    padding-right: 18px;
-    overflow: hidden;
     text-wrap: nowrap;
-    text-overflow: ellipsis;
+    border-collapse: separate;
 }
 
-.is-mobile table {
-    min-width: 100%;
-    width: auto;
-    font-size: 12px;
+/* firsts td */
+tbody tr:not(.box-separator) td:first-child {
+    border-top: 2px solid transparent;
+    border-left: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+    border-radius: 6px 0px 0px 6px;
+    text-align: center;
 }
 
-.is-mobile .resize-handle {
-    width: 18px;
+/* intermedies td */
+tbody tr:not(.box-separator) td:not(:first-child):not(:last-child) {
+    border-top: 2px solid transparent;
+    border-bottom: 2px solid transparent;
 }
 
-.is-mobile svg {
-    width: 8px;
-    height: 8px;
+/* latests td */
+tbody tr:not(.box-separator) td:last-child {
+    border-top: 2px solid transparent;
+    border-right: 2px solid transparent;
+    border-bottom: 2px solid transparent;
+    border-radius: 0px 6px 6px 0px;
+}
+
+tbody tr:not(.box-separator):hover,
+tbody tr.row-selected {
+    td:first-child {
+        border-top: 2px solid #006CE0;
+        border-left: 2px solid #006CE0;
+        border-bottom: 2px solid #006CE0;
+        background: #F0FBFF;
+    }
+
+    td:not(:first-child):not(:last-child) {
+        border-top: 2px solid #006CE0;
+        border-bottom: 2px solid #006CE0;
+        background: #F0FBFF;
+    }
+
+    td:last-child {
+        border-top: 2px solid #006CE0;
+        border-right: 2px solid #006CE0;
+        border-bottom: 2px solid #006CE0;
+        background: #F0FBFF;
+    }
+}
+
+tbody .row-separator {
+    padding: 2px;
+}
+
+tbody .separator {
+    height: 1px;
+    width: 100%;
+    background: #E6E6EB;
+}
+
+@media screen and (min-width: 769px) {
+    thead th {
+        font-size: 13px;
+    }
+
+    tbody td:not(.row-separator) {
+        padding: 8px;
+        font-size: 13px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    thead th {
+        font-size: 13px;
+    }
+
+    thead svg {
+        height: 8px;
+        width: 8px;
+    }
+
+    thead input,
+    tbody input {
+        width: 16px;
+        height: 16px;
+    }
+
+    tbody td:not(.row-separator) {
+        padding: 4px 8px 4px 8px;
+        font-size: 12px;
+    }
 }
 </style>
