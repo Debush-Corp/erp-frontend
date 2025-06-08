@@ -195,6 +195,7 @@
     }
 
     input:disabled {
+        border: 2px solid #7D8998;
         background: #F9F9F9;
     }
 
