@@ -217,9 +217,8 @@ header {
     align-items: center;
     padding: 0px 20px;
     box-sizing: border-box;
-    border-top: 1px solid #424650;
-    border-bottom: 1px solid #424650;
-    z-index: 99;
+    outline: 1px solid #424650;
+    z-index: 100;
 }
 
 #head-2 .h-head {
@@ -228,7 +227,6 @@ header {
 
 .h-head {
     width: auto;
-    height: auto;
     display: flex;
     flex-direction: row;
     align-items: center;

@@ -4,7 +4,7 @@
     </div>
 </template>
 
-<style>
+<style scoped>
     #market-view {
         width: 100%;
         height: 100%;

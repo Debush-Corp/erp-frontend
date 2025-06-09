@@ -2,21 +2,22 @@
     <div class="create-user-form">
         <div class="head">
             <h2>Crear un usuario</h2>
-            <img src="@/assets/icons/forms/form-close.svg" alt="icon-close">
+            <img @click.stop="closeForm" src="@/assets/icons/forms/form-close.svg" alt="icon-close">
         </div>
         <div class="body">
             <div class="group" id="group-username">
                 <h3>Nombre de usuario</h3>
                 <label>Especifica un nombre para este usuario. (*)</label>
-                <input type="text" id="username" name="username" />
+                <input type="text" id="username" name="username" v-model="username" />
             </div>
             <div class="group" id="group-password">
                 <h3>Contraseña</h3>
                 <div class="desc">
-                    <label>Genere una constraseña para este usuario. (*)</label>
+                    <label>Genere una contraseña para este usuario. (*)</label>
                     <div class="buttons">
-                        <button>
-                            <svg width="12" height="13" viewBox="0 0 12 13" fill="none"
+                        <button id="btn-generate" @click="generatePassword" :disabled="isLoading">
+                            <img v-show="isLoading" src="@/assets/icons/loaders/loader-refresh.gif" alt="">
+                            <svg v-show="!isLoading" width="12" height="13" viewBox="0 0 12 13" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <mask id="path-1-inside-1_678_1284" fill="white">
                                     <path
@@ -28,12 +29,12 @@
                                 <path d="M11.5005 1.42822V4.70947L8.21436 4.68311V4.42822H11.2144V1.42822H11.5005Z"
                                     stroke="#006CE0" />
                             </svg>
-                            <span>Generar</span></button>
-                        <button>
+                            <span :style="{ color: isLoading ? '#B4B4BB' : 'inherit' }">Generar</span></button>
+                        <button id="btn-copy" @click="copyToClipboard" :disabled="isCopied">
                             <svg width="12" height="13" viewBox="0 0 12 13" fill="none"
                                 xmlns="http://www.w3.org/2000/svg">
                                 <g clip-path="url(#clip0_678_1302)">
-                                    <path
+                                    <path :style="{ fill: isCopied ? '#B4B4BB' : '#006CE0' }"
                                         d="M5.18136 10.161C4.73636 10.161 4.36062 10.0078 4.05416 9.70132C3.74769 9.39485 3.59446 9.01912 3.59446 8.57412V2.83104C3.59446 2.38604 3.74769 2.0103 4.05416 1.70384C4.36062 1.39737 4.73636 1.24414 5.18136 1.24414H9.4131C9.8581 1.24414 10.2338 1.39737 10.5403 1.70384C10.8468 2.0103 11 2.38604 11 2.83104V8.57412C11 9.01912 10.8468 9.39485 10.5403 9.70132C10.2338 10.0078 9.8581 10.161 9.4131 10.161H5.18136ZM5.18136 8.57412H9.4131V2.83104H5.18136V8.57412ZM2.5869 12.7555C2.1419 12.7555 1.76616 12.6022 1.4597 12.2958C1.15323 11.9893 1 11.6136 1 11.1686V3.8386H2.5869V11.1686H8.40554V12.7555H2.5869Z"
                                         fill="#006CE0" />
                                 </g>
@@ -43,10 +44,10 @@
                                     </clipPath>
                                 </defs>
                             </svg>
-                            <span>Copiar</span></button>
+                            <span :style="{ color: isCopied ? '#B4B4BB' : 'inherit' }">Copiar</span></button>
                     </div>
                 </div>
-                <input type="text" id="password" name="password" disabled/>
+                <input type="text" id="password" name="password" v-model="password" readonly />
                 <label class="info">
                     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path
@@ -60,27 +61,174 @@
             <div class="group" id="group-document">
                 <h3>Documento de identidad</h3>
                 <label>Especifica el DNI u otro documento para este usuario (*)</label>
-                <input type="text" id="document" name="document" />
+                <input type="text" id="document" name="document" v-model="document" />
             </div>
             <div class="group" id="group-roles">
                 <h3>Roles</h3>
                 <label>Seleccione los roles para este usuario. (*)</label>
                 <div class="input-wrapper">
-                    <svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                            d="M6.27694 1.35858C6.87622 0.648385 7.97046 0.648386 8.56974 1.35858L13.5686 7.28265C14.3915 8.25791 13.6983 9.75 12.4222 9.75H2.4245C1.14842 9.75 0.45515 8.25791 1.2781 7.28265L6.27694 1.35858Z"
-                            fill="#9BA7B6" />
-                    </svg>
-                    <input type="text" id="roles" name="roles" disabled />
+                    <button @click="handleDropdown" :style="{rotate: openDropdown ? '180deg': '0deg'}"><svg width="14" height="13" viewBox="0 0 14 13" fill="none"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M8.56756 10.4295C7.96828 11.1397 6.87404 11.1397 6.27476 10.4295L1.27592 4.50544C0.452967 3.53018 1.14623 2.03809 2.42232 2.03809H12.42C13.6961 2.03809 14.3893 3.53018 13.5664 4.50544L8.56756 10.4295Z"
+                                fill="#7D8998" />
+                        </svg></button>
+                    <input type="text" id="roles" name="roles" v-model="roles" readonly />
                 </div>
+                <transition name="dropdown-transition">
+                    <DropdownRol v-show="openDropdown" @rol-clicked="handleRoles" :data="dataRoles" />
+                </transition>
             </div>
         </div>
         <div class="foot">
-            <button class="btn-secondary" id="btn-cancel">Cancelar</button>
+            <button class="btn-secondary" id="btn-cancel" @click="closeForm">Cancelar</button>
             <button class="btn-primary" id="btn-create">Crear</button>
         </div>
     </div>
 </template>
+
+<script setup lang="ts">
+import { ref, defineEmits, computed } from 'vue';
+import DropdownRol from '../dropwdowns/DropdownRol.vue';
+import store from "@/store";
+const isLoading = ref(false)
+const isCopied = ref(false)
+
+const username = ref("")
+const password = ref("")
+const document = ref("")
+const roles = computed(() => {
+    let rolesStr = ""
+    rolesSelected.value.forEach((rol, i) => {
+        rolesStr += rol
+        if (i + 1 < rolesSelected.value.length) {
+            rolesStr += ", "
+        }
+    });
+    return rolesStr
+})
+
+const rolesSelected = ref<string[]>([])
+
+const handleRoles = (rol: string) => {
+    if (rolesSelected.value.includes(rol)) {
+        let index = rolesSelected.value.indexOf(rol);
+        rolesSelected.value.splice(index, 1);
+    } else {
+        rolesSelected.value.push(rol)
+    }
+}
+
+const openDropdown = ref(true)
+
+const handleDropdown = () => {
+    openDropdown.value = !openDropdown.value
+}
+
+const dataRoles = {
+  administration: {
+    name: "Administradores",
+    roles: {
+      system: {
+        name: "Administrador de sistema",
+        description: "Creador del sistema (cuenta con los máximos privilegios)."
+      }
+    }
+  },
+  management: {
+    name: "Gerentes",
+    roles: {
+      general: {
+        name: "Gerente general",
+        description: "Dirige toda la organización (cuenta con acceso total, luego del administrador del sistema)."
+      },
+      assistant: {
+        name: "Gerente adjunto",
+        description: "Asiste al gerente general (cuenta con acceso total, luego del gerente general)"
+      }
+    }
+  },
+  supervisor: {
+    name: "Supervisores",
+    roles: {
+      general: {
+        name: "Supervisor general",
+        description: "Visualiza las operaciones de todas las áreas (No puede modificar ni eliminar datos)."
+      },
+      production: {
+        name: "Supervisor en producción",
+        description: "Visualiza las operaciones en el área de producción (No puede modificar ni eliminar datos)."
+      },
+      sales: {
+        name: "Supervisor en ventas",
+        description: "visualiza las operaciones en el área de ventas (No puede modificar ni eliminar datos)."
+      },
+      warehouse: {
+        name: "Supervisor en almacén",
+        description: "Visualiza inventarios y movimientos en almacén (No puede modificar ni eliminar datos)"
+      }
+    }
+  },
+  operators: {
+    name: "Operadores",
+    roles: {
+      production: {
+        name: "Operador en producción",
+        description: "Puede ejecutar acciones asignadas desde botones (como iniciar procesos), pero no editar directamente registros."
+      },
+      sales: {
+        name: "Operador en ventas",
+        description: "Puede realizar acciones operativas como registrar ventas desde la interfaz, sin modificar las tablas directamente."
+      },
+      warehouse: {
+        name: "Operador en almacén",
+        description: "Ejecuta tareas como registrar ingresos o salidas de productos mediante acciones predefinidas, sin editar datos directamente."
+      }
+    }
+  }
+}
+const emits = defineEmits(["close"])
+
+const closeForm = () => {
+    emits("close")
+}
+
+const generatePassword = async () => {
+    try {
+        console.log('Fetching password...');
+        isLoading.value = true;
+        const options = {
+            length: 6, //entre 6 y 50
+            use_uppercase: true,
+            use_lowercase: true,
+            use_digits: true,
+            use_special: true,
+        };
+        await store.dispatch('password/generatePassword', options);
+        password.value = store.state.password.password;
+    } catch (err) {
+        console.error('Error al generar la contraseña:', err);
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+const copyToClipboard = async () => {
+    try {
+        await navigator.clipboard.writeText(password.value)
+        isCopied.value = true
+        resetCopiedFlagAfter(1500)
+    } catch (error) {
+        console.error('Failed to copy text:', error)
+    }
+}
+
+const resetCopiedFlagAfter = (delay = 1500) => {
+    setTimeout(() => {
+        isCopied.value = false
+    }, delay)
+}
+</script>
 
 <style scoped lang="scss">
 .create-user-form {
@@ -89,6 +237,7 @@
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    box-sizing: border-box;
 }
 
 .head {
@@ -107,6 +256,10 @@
         font-size: 18px;
         color: #0F141A;
     }
+
+    img {
+        cursor: pointer;
+    }
 }
 
 .body {
@@ -117,8 +270,10 @@
     flex-direction: column;
     gap: 15px;
     box-sizing: border-box;
-    padding: 0px 20px;
+    padding: 0px 20px 25px 20px;
+    overflow: auto;
 }
+
 
 .body .group {
     width: auto;
@@ -147,10 +302,11 @@
     .buttons {
         display: flex;
         flex-direction: row;
-        gap: 0px;
+        gap: 10px;
 
         button {
             border: none;
+            padding: 0;
             background: transparent;
             color: #006CE0;
             display: flex;
@@ -159,6 +315,11 @@
             justify-content: center;
             gap: 5px;
             cursor: pointer;
+        }
+
+        #btn-generate img,
+        #btn-generate svg {
+            height: 12px;
         }
     }
 
@@ -183,6 +344,7 @@
     }
 
     input {
+        margin: 0;
         font-size: 13px;
         font-weight: 400;
         color: #080F1E;
@@ -194,27 +356,63 @@
         border-radius: 8px;
     }
 
-    input:disabled {
+    input:read-only {
         border: 2px solid #7D8998;
         background: #F9F9F9;
+        overflow-x: auto;
+        text-overflow: ellipsis;
     }
 
-    input:focus {
+    input:not(:read-only):focus {
         border: 2px solid #006CE0;
     }
 
     .input-wrapper {
         position: relative;
+
+        button {
+            position: absolute;
+            top: calc(50% - 7.5px);
+            padding: 0;
+            margin: 0;
+            right: 10px;
+            width: 14px;
+            height: 13px;
+            border: none;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: rotate 0.3s ease;
+        }
+
+
         input {
             width: 100%;
             padding: 8px 30px 8px 10px;
         }
-        svg {
-            position: absolute;
-            top: calc(50% - 5px );
-            right: 10px;
+
+
+        svg:hover path {
+            fill: #006CE0;
         }
     }
+}
+
+.dropdown-transition-enter-active,
+.dropdown-transition-leave-active {
+    transition:
+        opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+}
+
+.dropdown-transition-enter-from,
+.dropdown-transition-leave-to {
+    opacity: 0;
+}
+
+.dropdown-transition-enter-to,
+.dropdown-transition-leave-from {
+    opacity: 1;
 }
 
 .foot {
@@ -225,7 +423,6 @@
     justify-content: end;
     gap: 15px;
     box-sizing: border-box;
-    padding: 20px;
     border-top: 1px solid #B6BEC9;
 }
 
@@ -263,7 +460,12 @@
         border-radius: 24px;
     }
 
+    .foot {
+        padding: 20px;
+    }
+
     .foot button {
+        font-size: 12px;
         height: 34px;
     }
 }
@@ -275,8 +477,19 @@
         border-radius: 0px;
     }
 
+    .foot {
+        padding: 15px 20px;
+    }
+
     .foot button {
+        font-size: 12px;
         height: 25px;
     }
+
+    input[type="radio"] {
+        transform: scale(.8);
+        aspect-ratio: 1 / 1;
+    }
+
 }
 </style>

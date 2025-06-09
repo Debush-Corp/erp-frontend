@@ -145,7 +145,7 @@ const selectSection = () => {
 <style scoped>
 .menu {
     position: absolute;
-    z-index: 3;
+    z-index: 99;
     display: flex;
     box-sizing: border-box;
     overflow-y: auto;

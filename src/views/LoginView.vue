@@ -76,7 +76,7 @@ watch(() =>  success.value, () => {
     router.push('/');
 })
 </script>
-<style>
+<style scoped>
 #login-view {
     width: 100%;
     height: 100%;

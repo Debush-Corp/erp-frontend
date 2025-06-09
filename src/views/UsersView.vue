@@ -24,11 +24,11 @@
                                 fill="#006CE0" mask="url(#path-3-inside-2_122_1322)" />
                         </svg>
                     </button>
-                    <button class="btn" id="btn-delete" v-once-click="deleteUsers"
-                        :disabled="receivedItems.length === 0">Eliminar</button>
-                    <button class="btn" id="btn-edit" :disabled="receivedItems.length !== 1"
-                        @click="handleModal($event), handleForm('userEdite')">Editar</button>
-                    <button class="btn" id="btn-create" @click="handleModal($event), handleForm('userCreate')">Crear
+                    <button class="btn" id="btn-delete" @click="deleteUsers"
+                        :disabled="receivedItems.length === 0 || isLoading">Eliminar</button>
+                    <button class="btn" id="btn-edit" :disabled="receivedItems.length !== 1 || isLoading"
+                        @click="handleModal($event, true), handleForm('userEdite')">Editar</button>
+                    <button class="btn" id="btn-create" @click="handleModal($event, true), handleForm('userCreate')">Crear
                         usuario</button>
                 </div>
             </div>
@@ -68,8 +68,8 @@
             <h3>Seleccione un producto <span></span></h3>
         </div>
         <transition name="modal-transition">
-            <div v-if="modalOpen" class="over" @click="handleModal">
-                <CreateUserForm v-if="form === 'userCreate'" />
+            <div v-if="modalOpen" class="over" @click="handleModal($event, false)">
+                <CreateUserForm v-if="form === 'userCreate'" @close="modalOpen = false" />
             </div>
         </transition>
     </div>
@@ -129,9 +129,9 @@ const fetchUsers = async (page: number) => {
         }
         totalPages.value = res.total_pages;
         data.value = res.results;
-        isLoading.value = false
     } catch (error) {
         console.error('Error al obtener usuarios:', error);
+    } finally {
         isLoading.value = false
     }
 };
@@ -146,11 +146,11 @@ const handleIndex = (val: number) => {
     firstPage.value = firstPage.value + val
 }
 
-const handleModal = (event: MouseEvent) => {
+const handleModal = (event: MouseEvent, stateModal: boolean) => {
     const target = event.target as HTMLElement
     const currentTarget = event.currentTarget as HTMLElement
     if (target === currentTarget) {
-        modalOpen.value = !modalOpen.value
+        modalOpen.value = stateModal
     }
 }
 
@@ -187,6 +187,7 @@ const handleItems = (items: number[]) => {
 
 const deleteUsers = async () => {
     try {
+        isLoading.value = true
         for (const id of receivedItems.value) {
             await store.dispatch('accounts/deleteUser', id);
         }
@@ -194,8 +195,10 @@ const deleteUsers = async () => {
         console.log('Usuarios eliminados exitosamente');
     } catch (error) {
         console.error('Error al eliminar usuarios:', error);
+    } finally {
+        isLoading.value = false
     }
-    //await fetchUsers(currentPage.value);
+    await fetchUsers(currentPage.value);
 };
 </script>
 
@@ -284,15 +287,12 @@ p {
     border: 2px solid #B4B4BB;
 }
 
-#btn-refresh img {
-    width: 80%;
-    height: auto;
-}
-
+#btn-refresh img,
 #btn-refresh svg {
     width: 65%;
     height: auto;
 }
+
 
 #btn-refresh:enabled:hover {
     background: #F0FBFF;
@@ -318,8 +318,9 @@ p {
 
 #btn-delete:enabled:hover,
 #btn-edit:enabled:hover {
-    background: #012B66;
-    color: #fff;
+    background: #F0FBFF;
+    border: 2px solid #007bff;
+    color: #007bff;
 }
 
 #btn-create {
@@ -451,7 +452,7 @@ label p {
     bottom: 0;
     z-index: 4;
     width: 100dvw;
-    height: calc(100dvh - 56.22px);
+    height: calc(100dvh - 56.1px);
     background: rgba(2, 15, 33, 0.6);
     display: flex;
     justify-content: center;

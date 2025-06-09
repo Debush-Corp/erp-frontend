@@ -69,7 +69,7 @@ const handleLogout = async () => {
     flex-direction: column;
     font-family: sans-serif;
     box-sizing: border-box;
-    z-index: 3;
+    z-index: 99;
 }
 
 hr {

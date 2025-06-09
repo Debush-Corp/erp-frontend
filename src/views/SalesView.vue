@@ -4,7 +4,7 @@
     </div>
 </template>
 
-<style>
+<style scoped>
     #sales-view {
         width: 100%;
         height: 100%;

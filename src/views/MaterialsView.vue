@@ -4,7 +4,7 @@
     </div>
 </template>
 
-<style>
+<style scoped>
 .materials-view {
     width: 100%;
     height: 100%;
