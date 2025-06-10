@@ -1,7 +1,7 @@
 <template>
-    <div class="create-user-form">
+    <div class="update-user-form">
         <div class="head">
-            <h2>Crear un usuario</h2>
+            <h2>Actualizar un usuario</h2>
             <img @click.stop="closeForm" src="@/assets/icons/forms/form-close.svg" alt="icon-close">
         </div>
         <div class="body">
@@ -88,16 +88,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineEmits, computed } from 'vue';
+import { ref, defineEmits, computed, defineProps} from 'vue';
 import store from "@/store";
 import { RolSelected } from '@/types/rol-selected.interfaces';
 import DropdownRol from '../dropwdowns/DropdownRol.vue';
 const isLoading = ref(false)
 const isCopied = ref(false)
 
-const username = ref("")
+const username = ref(props.username)
 const password = ref("")
-const document = ref("")
+const document = ref(props.document)
 const rolesId = computed(() =>
     rolesSelected.value.map(rol => rol.id)
 )
@@ -185,6 +185,20 @@ const dataRoles = {
     }
 }
 const emits = defineEmits(["close"])
+const props = defineProps({
+    username: {
+        type: String,
+        required: true
+    },
+    document: {
+        type: String,
+        required: true
+    },
+    roles: {
+        type: Array,
+        required: true
+    }
+})
 
 const closeForm = () => {
     emits("close")
@@ -247,7 +261,7 @@ const createUser = async () => {
 </script>
 
 <style scoped lang="scss">
-.create-user-form {
+.update-user-form {
     background: #fff;
     display: flex;
     justify-content: center;
@@ -469,7 +483,7 @@ const createUser = async () => {
 }
 
 @media screen and (min-width: 769px) {
-    .create-user-form {
+    .update-user-form {
         min-width: 500px;
         width: 40%;
         height: 90%;
@@ -487,7 +501,7 @@ const createUser = async () => {
 }
 
 @media screen and (max-width: 768px) {
-    .create-user-form {
+    .update-user-form {
         width: 100%;
         height: 100%;
         border-radius: 0px;

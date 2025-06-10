@@ -8,7 +8,7 @@
             <template v-for="(valueRol, keyRol, j) in valueFamily.roles" :key="keyRol">
                 <div class="rol">
                     <div class="rol-left">
-                        <input type="checkbox" name="" id="" @click="rolClicked(valueRol.name)">
+                        <input type="checkbox" name="" id="" @click="rolClicked(keyRol, valueRol.name)">
                         <span>{{ valueRol.name }}</span>
                     </div>
                     <div class="rol-rigth">
@@ -32,6 +32,7 @@
 
 <script setup lang="ts">
 import { ref, defineProps, defineEmits } from 'vue';
+import { RolSelected } from '@/types/rol-selected.interfaces';
 const props = defineProps({
     data: {
         type: Array,
@@ -40,8 +41,9 @@ const props = defineProps({
 })
 const emits = defineEmits(['rol-clicked'])
 
-const rolClicked = (rol: string) => {
-    emits('rol-clicked', rol)
+const rolClicked = (keyRol: number, nameRol: string) => {
+    const rolSelected: RolSelected = {id: keyRol, name: nameRol}
+    emits('rol-clicked', rolSelected)
 }
 </script>
 

@@ -56,7 +56,7 @@
                     </button>
                 </div>
             </div>
-            <TableList :columns="columns" :data="data" @update:selectedItems="handleItems" />
+            <TableList v-if="!isLoading" :columns="columns" :data="data" @update:selectedItems="handleItems" />
         </div>
         <div class="resizer" @mousedown="startDragging" @touchstart.prevent="startDragging">
             <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
