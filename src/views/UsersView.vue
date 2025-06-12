@@ -2,7 +2,7 @@
     <div ref="containerRef" class="users-view">
         <div class="main" :style="{ height: mainHeight + 'px' }">
             <div class="head-main">
-                <h3>Usuarios <span>(100)</span></h3>
+                <h3>Usuarios <span>({{ totalUsers }})</span></h3>
                 <div class="buttons">
                     <button class="btn" id="btn-refresh" @click="fetchUsers(currentPage)" :disabled="isLoading">
                         <img v-if="isLoading" alt="btn-refresh" src="@/assets/icons/loaders/loader-refresh.gif">
@@ -27,7 +27,7 @@
                     <button class="btn" id="btn-delete" @click="deleteUsers"
                         :disabled="receivedItems.length === 0 || isLoading">Eliminar</button>
                     <button class="btn" id="btn-edit" :disabled="receivedItems.length !== 1 || isLoading"
-                        @click="handleModal($event, true), handleForm('userEdite')">Editar</button>
+                        @click="handleModal($event, true), handleForm('userUpdate')">Editar</button>
                     <button class="btn" id="btn-create" @click="handleModal($event, true), handleForm('userCreate')">Crear
                         usuario</button>
                 </div>
@@ -56,7 +56,7 @@
                     </button>
                 </div>
             </div>
-            <TableList v-if="!isLoading" :columns="columns" :data="data" @update:selectedItems="handleItems" />
+            <TableList v-if="(isLoading && data.length > 0) || !isLoading" :columns="columns" :data="data" @update:selectedItems="handleItems" />
         </div>
         <div class="resizer" @mousedown="startDragging" @touchstart.prevent="startDragging">
             <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -70,24 +70,28 @@
         <transition name="modal-transition">
             <div v-if="modalOpen" class="over" @click="handleModal($event, false)">
                 <CreateUserForm v-if="form === 'userCreate'" @close="modalOpen = false" />
+                <UpdateUserForm v-else-if="form === 'userUpdate'" @close="modalOpen = false" />
             </div>
         </transition>
     </div>
 </template>
 
 <script setup lang="ts">
-import CreateUserForm from "@/components/forms/CreateUserForm.vue";
 import { ref, onMounted, onBeforeUnmount, onBeforeMount, watch } from "vue";
-import TableList from "@/components/tables/TableList.vue";
 import store from "@/store";
+import TableList from "@/components/tables/TableList.vue";
+import CreateUserForm from "@/components/forms/CreateUserForm.vue";
+import UpdateUserForm from "@/components/forms/UpdateUserForm.vue";
 
 const isLoading = ref(false)
 const modalOpen = ref(false)
 const form = ref('')
+
 const pageSize = 3
 const firstPage = ref(1)
 const currentPage = ref(1)
 const totalPages = ref(3)
+const totalUsers = ref(0)
 
 const columns = ref<{ header: string, key: string }[]>([]);
 const data = ref<{ header: string, key: string }[]>([]);
@@ -127,6 +131,7 @@ const fetchUsers = async (page: number) => {
                 key: key
             }));
         }
+        totalUsers.value = res.total;
         totalPages.value = res.total_pages;
         data.value = res.results;
     } catch (error) {

@@ -47,7 +47,6 @@
 
 <script setup>
 import { defineProps, ref, watch, defineEmits, nextTick, onMounted, onUnmounted } from 'vue';
-import { debounce } from 'lodash'; // Asegúrate de instalar lodash: npm install lodash
 
 const props = defineProps({
     columns: {

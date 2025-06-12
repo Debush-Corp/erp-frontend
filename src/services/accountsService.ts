@@ -1,6 +1,29 @@
 import axios from '../services/axios';
 import { User, PaginatedResponse } from '../types/interfaces';
 
+// Interfaz para la respuesta de validación
+interface ValidateUserFieldResponse {
+  valid: boolean;
+  message?: string;
+  error_code?: 'required' | 'tooShort' | 'tooLong' | 'invalidFormat' | 'duplicate' | 'error';
+  error?: string;
+}
+
+// Validar nombre de usuario
+export async function validateUserField(data: {[key: string] : string}): Promise<ValidateUserFieldResponse> {
+  try {
+    const response = await axios.post<ValidateUserFieldResponse>('/api/accounts/users/validate/', data);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to validate user field:', error);
+    return {
+      valid: false,
+      error_code: 'error',
+      error: 'Error al conectar con el servidor.',
+    };
+  }
+}
+
 // Obtener el usuario actual
 export async function getCurrentUser(): Promise<User> {
   try {

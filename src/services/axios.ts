@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import store from '@/store'; // Ajusta la ruta según tu proyecto
 
 // Cola para almacenar solicitudes mientras se refresca el token
 let isRefreshing = false;
@@ -30,7 +31,7 @@ const instance: AxiosInstance = axios.create({
 // Interceptor para agregar el token a cada request
 instance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = store.getters['auth/getAccessToken'] || localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -45,14 +46,12 @@ instance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Verificamos si fue un 401, no estamos reintentando y no es la solicitud de refresh
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
       !originalRequest.url?.includes('/api/auth/refresh/')
     ) {
       if (isRefreshing) {
-        // Si ya se está refrescando el token, encola la solicitud
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -67,7 +66,7 @@ instance.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const refresh = localStorage.getItem('refreshToken');
+        const refresh = store.getters['auth/getRefreshToken'] || localStorage.getItem('refreshToken');
         if (!refresh) {
           throw new Error('No refresh token available');
         }
@@ -78,7 +77,13 @@ instance.interceptors.response.use(
         });
 
         const newAccess = res.data.access;
-        localStorage.setItem('accessToken', newAccess);
+        const newRefresh = res.data.refresh; // Manejar nuevo refreshToken si el backend lo devuelve
+
+        // Actualizar tokens en el store y localStorage
+        store.commit('auth/setTokens', { accessToken: newAccess, refreshToken: newRefresh });
+
+        // Recargar datos del usuario
+        await store.dispatch('auth/login', null, { root: true });
 
         // Actualizamos el header en la instancia
         instance.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
@@ -90,11 +95,9 @@ instance.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newAccess}`;
         return instance(originalRequest);
       } catch (refreshError) {
-        // Si falla la renovación, limpiamos el almacenamiento y redirigimos
         processQueue(refreshError, null);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        // Usar Vue Router si está disponible, si no, redirigir
+        store.dispatch('auth/logout', null, { root: true });
+        localStorage.removeItem('user');
         if (window.location.pathname !== '/login') {
           window.location.href = '/login';
         }

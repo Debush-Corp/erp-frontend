@@ -7,7 +7,7 @@ interface AccountsState {
   count: number;
   next: string | null;
   previous: string | null;
-  currentUser: User | null; // Nuevo campo para almacenar el usuario actual
+  currentUser: User | null;
   loading: boolean;
   error: string | null;
 }
@@ -20,7 +20,7 @@ const accountsModule: Module<AccountsState, any> = {
     count: 0,
     next: null,
     previous: null,
-    currentUser: null, // Inicializamos el usuario actual como null
+    currentUser: null,
     loading: false,
     error: null,
   },
@@ -60,11 +60,26 @@ const accountsModule: Module<AccountsState, any> = {
   },
 
   actions: {
-    // Obtener lista paginada de usuarios
-    async fetchUsers({ commit }, params?: Record<string, any>) {
+    // Nueva acción para validar el field de usuario
+    async validateUserField({ commit }, data: {[key: string] : string}) {
       commit('setLoading', true);
       commit('setError', null);
 
+      try {
+        const response = await accountsService.validateUserField(data);
+        return response;
+      } catch (err: any) {
+        commit('setError', 'Error al validar el field de usuario');
+        throw err;
+      } finally {
+        commit('setLoading', false);
+      }
+    },
+
+    // Acciones existentes (sin cambios)
+    async fetchUsers({ commit }, params?: Record<string, any>) {
+      commit('setLoading', true);
+      commit('setError', null);
       try {
         const response: PaginatedResponse<User> = await accountsService.getUsers(params);
         commit('setUsers', response.results);
@@ -83,11 +98,9 @@ const accountsModule: Module<AccountsState, any> = {
       }
     },
 
-    // Obtener el usuario actual
     async fetchCurrentUser({ commit }) {
       commit('setLoading', true);
       commit('setError', null);
-
       try {
         const user: User = await accountsService.getCurrentUser();
         commit('setCurrentUser', user);
@@ -100,11 +113,9 @@ const accountsModule: Module<AccountsState, any> = {
       }
     },
 
-    // Crear un nuevo usuario
     async createUser({ commit }, userData: Partial<User>) {
       commit('setLoading', true);
       commit('setError', null);
-
       try {
         const newUser: User = await accountsService.createUser(userData);
         commit('addUser', newUser);
@@ -117,11 +128,9 @@ const accountsModule: Module<AccountsState, any> = {
       }
     },
 
-    // Actualizar un usuario existente
     async updateUser({ commit }, { userId, userData }: { userId: number | string; userData: Partial<User> }) {
       commit('setLoading', true);
       commit('setError', null);
-
       try {
         const updatedUser: User = await accountsService.updateUser(userId, userData);
         commit('updateUser', updatedUser);
@@ -134,11 +143,9 @@ const accountsModule: Module<AccountsState, any> = {
       }
     },
 
-    // Eliminar un usuario
     async deleteUser({ commit }, userId: number | string) {
       commit('setLoading', true);
       commit('setError', null);
-
       try {
         await accountsService.deleteUser(userId);
         commit('removeUser', userId);

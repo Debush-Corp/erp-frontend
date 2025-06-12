@@ -1,14 +1,14 @@
 <template>
-    <div class="create-user-form">
+    <div class="update-user-form">
         <div class="head">
-            <h2>Crear un usuario</h2>
+            <h2>Actualizar usuario</h2>
             <img @click.stop="closeForm" src="@/assets/icons/forms/form-close.svg" alt="icon-close">
         </div>
         <div class="body">
             <InputUserCommon :data="dataInputUsername" @update:model-value="(value: string) => {inputUsername.username = value}" @update:is-valid="(value: boolean) => {inputUsername.isValid = value}"/>
             <InputUserPassword @update:model-value="(value: string) => { inputPassword.password = value }" @update:is-valid="(value: boolean) => { inputPassword.isValid = value }" />  
             <InputUserCommon :data="dataInputDocument" @update:model-value="(value: string) => {inputDocument.document = value}" @update:is-valid="(value: boolean) => {inputDocument.isValid = value}"/>          
-            <InputUserRoles  @update:model-value="(value: number[]) => {inputRoles.roles = value}"/>
+            <InputUserRoles :data="dataInputRoles" @update:model-value="(value: number[]) => {inputRoles.roles = value}"/>
         </div>
         <div class="foot">
             <button class="btn-secondary" id="btn-cancel" @click="closeForm">Cancelar</button>
@@ -21,6 +21,7 @@
 import { ref, defineEmits, computed } from 'vue';
 import store from "@/store";
 import { DataInputUserCommon } from '@/types/data-input-user-common.interface';
+import { DataInputUserRoles } from '@/types/data-input-user-roles.interface';
 import InputUserCommon from '@/components/inputs/InputUserCommon.vue'
 import InputUserPassword from '@/components/inputs/InputUserPassword.vue'
 import InputUserRoles from '../inputs/InputUserRoles.vue';
@@ -28,7 +29,7 @@ import InputUserRoles from '../inputs/InputUserRoles.vue';
 const dataInputUsername = ref<DataInputUserCommon>({
     title: 'Nombre de usuario',
     description: 'Especifica un nombre para este usuario',
-    value: '',
+    value: 'hola',
     name: 'username',
     typeValue: 'text',
     optional: false,
@@ -81,6 +82,13 @@ const dataInputDocument = ref<DataInputUserCommon>({
     validationAction: 'accounts/validateUserField',
 });
 
+const dataInputRoles = ref<DataInputUserRoles>({
+    rolesSelected: [
+        {id: 1, name: "Administrador de sistema"},
+        {id: 2, name: "Gerente general"}
+    ]
+})
+
 const isLoading = ref(false)
 
 interface InputField<T = string> {
@@ -122,7 +130,7 @@ const createUser = async () => {
 </script>
 
 <style scoped lang="scss">
-.create-user-form {
+.update-user-form {
     background: #fff;
     display: flex;
     justify-content: center;
@@ -204,7 +212,7 @@ const createUser = async () => {
 }
 
 @media screen and (min-width: 769px) {
-    .create-user-form {
+    .update-user-form {
         min-width: 500px;
         width: 40%;
         height: 90%;
@@ -222,7 +230,7 @@ const createUser = async () => {
 }
 
 @media screen and (max-width: 768px) {
-    .create-user-form {
+    .update-user-form {
         width: 100%;
         height: 100%;
         border-radius: 0px;
