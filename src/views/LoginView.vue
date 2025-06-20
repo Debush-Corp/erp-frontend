@@ -81,7 +81,7 @@ watch(() =>  success.value, () => {
     width: 100%;
     height: 100%;
     background-color: #2C3588;
-    background-image: url("../assets/login/bg-logo.svg");
+    background-image: url("@/assets/login/logo-bg.svg");
     background-repeat: space;
     background-size: auto;
     background-size: 100px 100px;

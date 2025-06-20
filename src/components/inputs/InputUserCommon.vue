@@ -2,7 +2,7 @@
     <div class="input-user-common">
         <h3 class="title">{{ data.title }}</h3>
         <label :for="data.name" class="description">
-            {{ data.description + (data.optional ? '' : ' (*)') }}
+            {{ data.description + (data.rules?.required ? ' (*)' : '') }}
         </label>
 
         <input
@@ -38,10 +38,10 @@
 import { ref, defineProps, defineEmits, watch, computed } from 'vue';
 import { debounce } from 'lodash';
 import store from '@/store';
-import { DataInputUserCommon } from '@/types/data-input-user-common.interface';
+import { InputCommonData } from '@/types/user-input-common.interface';
 
 const props = defineProps<{
-    data: DataInputUserCommon;
+    data: InputCommonData;
 }>();
 
 const emits = defineEmits<{
@@ -51,7 +51,7 @@ const emits = defineEmits<{
 
 const isLoading = ref(false);
 const inputValue = ref(props.data.value);
-const inputState = ref<keyof DataInputUserCommon['info']>('default');
+const inputState = ref<keyof InputCommonData['info']>('default');
 
 const validateInput = debounce(async () => {
     const value = inputValue.value.trim();
@@ -59,7 +59,7 @@ const validateInput = debounce(async () => {
 
     // Estado inicial
     let valid = true;
-    let newState: keyof DataInputUserCommon['info'] = 'success';
+    let newState: keyof InputCommonData['info'] = 'success';
 
     // Validaciones locales
     if (rules.required && !value) {
@@ -74,6 +74,8 @@ const validateInput = debounce(async () => {
     } else if (rules.maxLength && value.length > rules.maxLength) {
         valid = false;
         newState = 'tooLong';
+    } else if (value === props.data.default) {
+        newState = 'default';
     } else if (rules.unique && value && props.data.validationAction) {
         // Validación asíncrona para unicidad
         isLoading.value = true;

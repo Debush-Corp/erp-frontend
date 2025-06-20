@@ -1,4 +1,4 @@
-export interface RolSelected {
+export interface UserRol {
     id: number;
     name: string;
 }

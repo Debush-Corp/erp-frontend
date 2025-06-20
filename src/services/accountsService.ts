@@ -62,7 +62,7 @@ export async function createUser(userData: Partial<User>): Promise<User> {
 // Actualizar un usuario existente
 export async function updateUser(userId: number | string, userData: Partial<User>): Promise<User> {
   try {
-    const response = await axios.put<User>(`/api/accounts/users/${userId}/`, userData);
+    const response = await axios.patch<User>(`/api/accounts/users/${userId}/`, userData);
     return response.data;
   } catch (error) {
     console.error(`Failed to update user with ID ${userId}:`, error);

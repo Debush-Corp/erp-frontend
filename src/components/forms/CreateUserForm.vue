@@ -5,14 +5,21 @@
             <img @click.stop="closeForm" src="@/assets/icons/forms/form-close.svg" alt="icon-close">
         </div>
         <div class="body">
-            <InputUserCommon :data="dataInputUsername" @update:model-value="(value: string) => {inputUsername.username = value}" @update:is-valid="(value: boolean) => {inputUsername.isValid = value}"/>
-            <InputUserPassword @update:model-value="(value: string) => { inputPassword.password = value }" @update:is-valid="(value: boolean) => { inputPassword.isValid = value }" />  
-            <InputUserCommon :data="dataInputDocument" @update:model-value="(value: string) => {inputDocument.document = value}" @update:is-valid="(value: boolean) => {inputDocument.isValid = value}"/>          
-            <InputUserRoles  @update:model-value="(value: number[]) => {inputRoles.roles = value}"/>
+            <InputUserCommon :data="dataInputUsername"
+                @update:model-value="(value: string) => { inputUsername.username = value }"
+                @update:is-valid="(value: boolean) => { inputUsername.isValid = value }" />
+            <InputUserPassword @update:model-value="(value: string) => { inputPassword.password = value }"
+                @update:is-valid="(value: boolean) => { inputPassword.isValid = value }" />
+            <InputUserCommon :data="dataInputDocument"
+                @update:model-value="(value: string) => { inputDocument.document = value }"
+                @update:is-valid="(value: boolean) => { inputDocument.isValid = value }" />
+            <InputUserRoles :data="dataInputRoles"
+                @update:model-value="(value: UserRol[]) => { inputRoles.roles = value }"
+                @update:is-valid="(value: boolean) => { inputRoles.isValid = value }" />
         </div>
         <div class="foot">
-            <button class="btn-secondary" id="btn-cancel" @click="closeForm">Cancelar</button>
-            <button class="btn-primary" id="btn-create" @click="createUser" :disabled="isLoading">Crear</button>
+            <button class="btn-secondary" id="btn-cancel" @click="handleForm()">Cancelar</button>
+            <button class="btn-primary" id="btn-create" @click="createUser" :disabled="isLoading || !isValid">Crear</button>
         </div>
     </div>
 </template>
@@ -20,18 +27,20 @@
 <script setup lang="ts">
 import { ref, defineEmits, computed } from 'vue';
 import store from "@/store";
-import { DataInputUserCommon } from '@/types/data-input-user-common.interface';
-import InputUserCommon from '@/components/inputs/InputUserCommon.vue'
-import InputUserPassword from '@/components/inputs/InputUserPassword.vue'
-import InputUserRoles from '../inputs/InputUserRoles.vue';
+import { InputCommonData } from '@/types/user-input-common.interface';
+import InputUserCommon from '@/components/inputs/InputUserCommon.vue';
+import InputUserPassword from '@/components/inputs/InputUserPassword.vue';
+import { InputRolesData } from '@/types/user-input-roles.interface';
+import InputUserRoles from '@/components/inputs/InputUserRoles.vue';
+import { UserRol } from '@/types/user-rol.interfaces';
 
-const dataInputUsername = ref<DataInputUserCommon>({
+const dataInputUsername = ref<InputCommonData>({
     title: 'Nombre de usuario',
     description: 'Especifica un nombre para este usuario',
     value: '',
+    default: '',
     name: 'username',
     typeValue: 'text',
-    optional: false,
     rules: {
         required: true,
         minLength: 4,
@@ -53,13 +62,13 @@ const dataInputUsername = ref<DataInputUserCommon>({
     validationAction: 'accounts/validateUserField',
 });
 
-const dataInputDocument = ref<DataInputUserCommon>({
+const dataInputDocument = ref<InputCommonData>({
     title: 'Documento de identidad',
     description: 'Especifica un documento de identidad para este usuario',
     value: '',
+    default: '',
     name: 'document',
     typeValue: 'text',
-    optional: false,
     rules: {
         required: true,
         minLength: 6,
@@ -81,22 +90,35 @@ const dataInputDocument = ref<DataInputUserCommon>({
     validationAction: 'accounts/validateUserField',
 });
 
+const dataInputRoles = ref<InputRolesData>({
+    rolesSelected: []
+})
+
+const closeForm = ref(false);
+
 const isLoading = ref(false)
 
 interface InputField<T = string> {
-  [key: string]: T | number[] | boolean;
-  isValid: boolean;
+    [key: string]: T | UserRol[] | boolean;
+    isValid: boolean;
 }
 
 const inputUsername = ref<InputField>({ username: '', isValid: false });
 const inputPassword = ref<InputField>({ password: '', isValid: false });
 const inputDocument = ref<InputField>({ document: '', isValid: false });
-const inputRoles = ref<InputField>({ roles: [], isValid: true });
+const inputRoles = ref<InputField>({ roles: [], isValid: false });
 
-const emits = defineEmits(["close"])
+const isValid = computed(() => {
+    return [
+        inputUsername.value.isValid,
+        inputPassword.value.isValid,
+        inputDocument.value.isValid,
+        inputRoles.value.isValid
+    ].every(Boolean)
+})
 
-const closeForm = () => {
-    emits("close")
+const handleForm = () => {
+    closeForm.value = !closeForm.value
 }
 
 // POST /api/accounts/users/
@@ -105,12 +127,13 @@ const createUser = async () => {
         username: inputUsername.value.username,
         password: inputPassword.value.password,
         document: inputDocument.value.document,
-        group_ids: inputRoles.value.roles
+        group_ids: Object.values(inputRoles.value.roles).map((rol: UserRol) => rol.id)
     }
 
     console.log(`Enviando ${JSON.stringify(userData)}`)
     try {
         isLoading.value = true
+        closeForm()
         await store.dispatch('accounts/createUser', userData);
         console.log('Usuarios creado exitosamente');
     } catch (error) {
@@ -142,6 +165,7 @@ const createUser = async () => {
 
     h2 {
         margin: 0;
+        padding: 0;
         font-family: sans-serif;
         font-weight: bold;
         font-size: 18px;
@@ -150,6 +174,11 @@ const createUser = async () => {
 
     img {
         cursor: pointer;
+        border-radius: 50%;
+    }
+
+    img:hover {
+        background: #f1f1f1;
     }
 }
 
@@ -199,8 +228,14 @@ const createUser = async () => {
     color: #0F141A;
 }
 
-#btn-create:hover {
+#btn-create:not(:disabled):hover {
     background: #ffb056;
+}
+
+#btn-create:disabled {
+    background: #f1f1f1;
+    color: #B4B4BB;
+    cursor: default;
 }
 
 @media screen and (min-width: 769px) {
@@ -208,7 +243,7 @@ const createUser = async () => {
         min-width: 500px;
         width: 40%;
         height: 90%;
-        border-radius: 24px;
+        border-radius: 32px;
     }
 
     .foot {

@@ -1,7 +1,9 @@
 <template>
     <div class="input-user-roles">
         <h3 class="title">Roles</h3>
-        <label class="description">Seleccione los roles para este usuario. (*)</label>
+        <label class="description">
+            Seleccione los roles para este usuario. (*)
+        </label>
         <div class="input-wrapper">
             <button @click="handleDropdown" :style="{ rotate: dropdownOpen ? '180deg' : '0deg' }"><svg width="14"
                     height="13" viewBox="0 0 14 13" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -13,22 +15,23 @@
         </div>
         <transition name="dropdown-transition">
             <DropdownRol v-show="dropdownOpen" :data="dataRoles" :default="data.rolesSelected"
-                @update:model-value="(value: RolSelected[]) => { rolesSelected = value }" />
+                @update:model-value="(value: UserRol[]) => { rolesSelected = value }" />
         </transition>
     </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch, defineProps, defineEmits } from 'vue';
-import { DataInputUserRoles } from '@/types/data-input-user-roles.interface';
-import { RolSelected } from '@/types/rol-selected.interfaces';
+import { InputRolesData } from '@/types/user-input-roles.interface';
+import { UserRol } from '@/types/user-rol.interfaces';
 import DropdownRol from '../dropwdowns/DropdownRol.vue';
 
 const props = defineProps<{
-    data: DataInputUserRoles
+    data: InputRolesData
 }>();
 const emits = defineEmits<{
-    (e: 'update:modelValue', value: number[]): void;
+    (e: 'update:modelValue', value: UserRol[]): void;
+    (e: 'update:isValid', value: boolean): void;
 }>();
 
 const dropdownOpen = ref<boolean>(false);
@@ -36,20 +39,18 @@ const handleDropdown = () => {
     dropdownOpen.value = !dropdownOpen.value;
 }
 
-const rolesSelected = ref<RolSelected[]>(props.data.rolesSelected)
-const rolesString = ref<string>(
-    props.data.rolesSelected.map(rol => rol.name).join(', ')
-)
-const rolesId = ref<number[]>(
-    props.data.rolesSelected.map(rol => rol.id)
-)
+const rolesSelected = ref<UserRol[]>(props.data.rolesSelected)
+const rolesString = computed(() =>
+    rolesSelected.value.map(rol => rol.name).join(', ')
+);
+
+const rolesId = computed(() =>
+    rolesSelected.value.map(rol => rol.id)
+);
 
 watch(rolesId, () => {
-    emits('update:modelValue', rolesId.value);
-})
-
-watch(rolesSelected, () => {
-    rolesId.value = rolesSelected.value.map(rol => rol.id);
+    emits('update:modelValue', rolesSelected.value);
+    emits('update:isValid', rolesId.value.length > 0);
 })
 
 const dataRoles = {

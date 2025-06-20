@@ -8,7 +8,7 @@
             <template v-for="(valueRol, keyRol, j) in valueFamily.roles" :key="keyRol">
                 <div class="rol">
                     <div class="rol-left">
-                        <input type="checkbox" :checked="idRolesSelected.includes(keyRol)" name="" id="" @click="rolClicked(keyRol, valueRol.name)">
+                        <input type="checkbox" name="" :checked="rolesSelected.findIndex(r => r.id == keyRol) !== -1" id="" @click="rolClicked(keyRol, valueRol.name)">
                         <span>{{ valueRol.name }}</span>
                     </div>
                     <div class="rol-rigth">
@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import { ref, defineProps, defineEmits } from 'vue';
-import { RolSelected } from '@/types/rol-selected.interfaces';
+import { UserRol } from '@/types/user-rol.interfaces';
 
 interface Rol {
     name: string;
@@ -43,23 +43,25 @@ interface FamilyRol {
     roles: { [key: number]: Rol };
 }
 
-const props = defineProps<{ data: { [key: number]: FamilyRol }, default: RolSelected[] }>();
-const emits = defineEmits<{ (e: 'update:modelValue', value: RolSelected[]): void; }>();
+const props = defineProps<{ data: { [key: number]: FamilyRol }, default: UserRol[] }>();
+const emits = defineEmits<{ (e: 'update:modelValue', value: UserRol[]): void; }>();
 
-const rolesSelected = ref<RolSelected[]>(props.default)
-
-const idRolesSelected = (props.default).map(rolSelected => String(rolSelected.id));
-
-console.log(`id selected: ${idRolesSelected}`)
+const rolesSelected = ref<UserRol[]>(props.default)
 
 const rolClicked = (keyRol: number, nameRol: string) => {
-    const rolSelected: RolSelected = { id: keyRol, name: nameRol }
-    const index = rolesSelected.value.findIndex(r => r.id === rolSelected.id)
+    const rolSelected: UserRol = { id: keyRol, name: nameRol }
+
+    console.log(`click en rol ${nameRol}`)
+
+    const index = rolesSelected.value.findIndex(r => r.id == rolSelected.id)
     if (index !== -1) {
+        console.log('Ya estaba seleccionado -> lo deseleccionamos')
         rolesSelected.value.splice(index, 1)
     } else {
+        console.log('Estaba deseleccionado -> lo seleccionamos')
         rolesSelected.value.push(rolSelected)
     }
+    console.log(`Dropdown emitiendo ${JSON.stringify(rolesSelected.value)}`)
     emits('update:modelValue', rolesSelected.value);
 }
 </script>

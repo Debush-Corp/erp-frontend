@@ -1,17 +1,11 @@
-export interface DataInputUserCommon {
+export interface InputCommonData {
     title: string;
     description: string;
     value: string;
+    default: string;
     name: string;
     typeValue: string;
-    optional: boolean;
-    rules?: {
-        required?: boolean;
-        minLength?: number;
-        maxLength?: number;
-        pattern?: RegExp;
-        unique?: boolean;
-    };
+    rules?: InputRules;
     info: {
         default: string;
         wait: string;
@@ -24,4 +18,12 @@ export interface DataInputUserCommon {
         error?: string;
     };
     validationAction: string;
+}
+
+export interface InputRules {
+    required?: boolean;
+    minLength?: number;
+    maxLength?: number;
+    pattern?: RegExp;
+    unique?: boolean;
 }

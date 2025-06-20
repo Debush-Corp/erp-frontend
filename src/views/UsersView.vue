@@ -1,6 +1,7 @@
 <template>
     <div ref="containerRef" class="users-view">
         <div class="main" :style="{ height: mainHeight + 'px' }">
+            <ToastAlert :alerts="dataAlerts" />
             <div class="head-main">
                 <h3>Usuarios <span>({{ totalUsers }})</span></h3>
                 <div class="buttons">
@@ -25,10 +26,11 @@
                         </svg>
                     </button>
                     <button class="btn" id="btn-delete" @click="deleteUsers"
-                        :disabled="receivedItems.length === 0 || isLoading">Eliminar</button>
-                    <button class="btn" id="btn-edit" :disabled="receivedItems.length !== 1 || isLoading"
+                        :disabled="rowsSelected.length === 0 || isLoading">Eliminar</button>
+                    <button class="btn" id="btn-edit" :disabled="rowsSelected.length !== 1 || isLoading"
                         @click="handleModal($event, true), handleForm('userUpdate')">Editar</button>
-                    <button class="btn" id="btn-create" @click="handleModal($event, true), handleForm('userCreate')">Crear
+                    <button class="btn" id="btn-create"
+                        @click="handleModal($event, true), handleForm('userCreate')">Crear
                         usuario</button>
                 </div>
             </div>
@@ -42,7 +44,7 @@
                     </button>
                     <button v-for="i in pageSize" :key="i" class="btn-page"
                         :class="{ 'selected-page': currentPage === firstPage + i - 1 }"
-                        :disabled="totalPages < firstPage + i - 1 || data.length == 0"
+                        :disabled="totalPages < firstPage + i - 1 || rows.length == 0"
                         @click="handlePagination(firstPage + i - 1)">
                         {{ firstPage + i - 1 }}
                     </button>
@@ -56,7 +58,8 @@
                     </button>
                 </div>
             </div>
-            <TableList v-if="(isLoading && data.length > 0) || !isLoading" :columns="columns" :data="data" @update:selectedItems="handleItems" />
+            <TableCommon v-if="(isLoading && rows.length > 0) || !isLoading" :columns="columns" :rows="rows"
+                @update:rowsSelected="(value: TableRow[]) => { rowsSelected = value as UserRow[] }" />
         </div>
         <div class="resizer" @mousedown="startDragging" @touchstart.prevent="startDragging">
             <svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -70,7 +73,8 @@
         <transition name="modal-transition">
             <div v-if="modalOpen" class="over" @click="handleModal($event, false)">
                 <CreateUserForm v-if="form === 'userCreate'" @close="modalOpen = false" />
-                <UpdateUserForm v-else-if="form === 'userUpdate'" @close="modalOpen = false" />
+                <UpdateUserForm v-else-if="form === 'userUpdate'" @close="modalOpen = false" :default="rowsSelected[0]"
+                    @update:rowSelected="(value: UserRow) => { rowsSelected[0] = value }" />
             </div>
         </transition>
     </div>
@@ -79,9 +83,13 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, onBeforeMount, watch } from "vue";
 import store from "@/store";
-import TableList from "@/components/tables/TableList.vue";
+import ToastAlert from "@/components/alerts/ToastAlert.vue";
+import TableCommon from "@/components/tables/TableCommon.vue";
 import CreateUserForm from "@/components/forms/CreateUserForm.vue";
 import UpdateUserForm from "@/components/forms/UpdateUserForm.vue";
+import { TableColumn, TableRow } from "@/types/table-common.interface";
+import { UserRow } from "@/types/table-common.interface";
+import { Alert } from "@/types/toast-alert.interface";
 
 const isLoading = ref(false)
 const modalOpen = ref(false)
@@ -93,8 +101,9 @@ const currentPage = ref(1)
 const totalPages = ref(3)
 const totalUsers = ref(0)
 
-const columns = ref<{ header: string, key: string }[]>([]);
-const data = ref<{ header: string, key: string }[]>([]);
+const columns = ref<TableColumn[]>([]);
+const rows = ref<UserRow[]>([]);
+const rowsSelected = ref<UserRow[]>([]);
 
 const containerRef = ref<HTMLElement | null>(null);
 const mainHeight = ref(400);
@@ -127,13 +136,14 @@ const fetchUsers = async (page: number) => {
         const res = await store.dispatch('accounts/fetchUsers', { page: page });
         if (res && res.results && res.results.length > 0) {
             columns.value = Object.keys(res.results[0]).map((key) => ({
-                header: key.charAt(0).toUpperCase() + key.slice(1),
-                key: key
+                name: key.charAt(0).toUpperCase() + key.slice(1),
+                id: key
             }));
         }
         totalUsers.value = res.total;
         totalPages.value = res.total_pages;
-        data.value = res.results;
+        //data.value = res.results;
+        rows.value = res.results as UserRow[];
     } catch (error) {
         console.error('Error al obtener usuarios:', error);
     } finally {
@@ -185,18 +195,40 @@ onBeforeUnmount(() => {
     document.removeEventListener("touchend", smainDragging);
 });
 
-const receivedItems = ref<number[]>([])
-const handleItems = (items: number[]) => {
-    receivedItems.value = items
-}
+const createUser = async (data: Object) => {
+    console.log(`Enviando ${JSON.stringify(data)}`)
+    try {
+        isLoading.value = true
+        await store.dispatch('accounts/createUser', data);
+        console.log('Usuarios creado exitosamente');
+    } catch (error) {
+        console.error('Error al crear el usuario:', error);
+    } finally {
+        isLoading.value = false
+    }
+};
+
+const updateUser = async (data: object) => {
+    console.log(`Enviando ${JSON.stringify(data)}`)
+    try {
+        isLoading.value = true
+        const updatedUser = await store.dispatch('accounts/updateUser', data);
+        console.log('Usuarios actualizado exitosamente');
+        console.log(JSON.stringify(updatedUser))
+    } catch (error) {
+        console.error('Error al actualizar el usuario:', error);
+    } finally {
+        isLoading.value = false
+    }
+};
 
 const deleteUsers = async () => {
     try {
         isLoading.value = true
-        for (const id of receivedItems.value) {
-            await store.dispatch('accounts/deleteUser', id);
-        }
-        receivedItems.value = [];
+        await Promise.all(rowsSelected.value.map((rowselected) => {
+            return store.dispatch('accounts/deleteUser', rowselected.id);
+        }));
+        rowsSelected.value = [];
         console.log('Usuarios eliminados exitosamente');
     } catch (error) {
         console.error('Error al eliminar usuarios:', error);
@@ -205,6 +237,12 @@ const deleteUsers = async () => {
     }
     await fetchUsers(currentPage.value);
 };
+
+const dataAlerts: Alert[] = [
+    { id: "1", type: "success", "message": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+    { id: "2", type: "error", "message": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+    { id: "3", type: "fail", "message": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+]
 </script>
 
 <style scoped lang="scss">
@@ -236,6 +274,7 @@ p {
 }
 
 .main {
+    position: relative;
     border-bottom: 1px solid #C6C6CD;
 }
 
