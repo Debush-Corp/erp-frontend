@@ -2,24 +2,24 @@
     <div class="create-user-form">
         <div class="head">
             <h2>Crear un usuario</h2>
-            <img @click.stop="closeForm" src="@/assets/icons/forms/form-close.svg" alt="icon-close">
+            <img @click.stop="handleForm" src="@/assets/icons/forms/form-close.svg" alt="icon-close">
         </div>
         <div class="body">
             <InputUserCommon :data="dataInputUsername"
-                @update:model-value="(value: string) => { inputUsername.username = value }"
+                @update:model-value="(value: string) => { inputUsername.data = value }"
                 @update:is-valid="(value: boolean) => { inputUsername.isValid = value }" />
-            <InputUserPassword @update:model-value="(value: string) => { inputPassword.password = value }"
+            <InputUserPassword @update:model-value="(value: string) => { inputPassword.data = value }"
                 @update:is-valid="(value: boolean) => { inputPassword.isValid = value }" />
             <InputUserCommon :data="dataInputDocument"
-                @update:model-value="(value: string) => { inputDocument.document = value }"
+                @update:model-value="(value: string) => { inputDocument.data = value }"
                 @update:is-valid="(value: boolean) => { inputDocument.isValid = value }" />
             <InputUserRoles :data="dataInputRoles"
-                @update:model-value="(value: UserRol[]) => { inputRoles.roles = value }"
+                @update:model-value="(value: UserRol[]) => { inputRoles.data = value }"
                 @update:is-valid="(value: boolean) => { inputRoles.isValid = value }" />
         </div>
         <div class="foot">
             <button class="btn-secondary" id="btn-cancel" @click="handleForm()">Cancelar</button>
-            <button class="btn-primary" id="btn-create" @click="createUser" :disabled="isLoading || !isValid">Crear</button>
+            <button class="btn-primary" id="btn-create" @click="sendFormData" :disabled="isLoading || !formValid">Crear</button>
         </div>
     </div>
 </template>
@@ -33,6 +33,11 @@ import InputUserPassword from '@/components/inputs/InputUserPassword.vue';
 import { InputRolesData } from '@/types/user-input-roles.interface';
 import InputUserRoles from '@/components/inputs/InputUserRoles.vue';
 import { UserRol } from '@/types/user-rol.interfaces';
+import { FormUserCreateData } from '@/types/user-form';
+
+const emits = defineEmits<{
+    (e: 'submit-form', value: FormUserCreateData): void;
+}>();
 
 const dataInputUsername = ref<InputCommonData>({
     title: 'Nombre de usuario',
@@ -98,17 +103,31 @@ const closeForm = ref(false);
 
 const isLoading = ref(false)
 
-interface InputField<T = string> {
-    [key: string]: T | UserRol[] | boolean;
+interface InputStringField {
+    data: string,
+    isValid: boolean
+}
+
+interface InputArrayField {
+    data: UserRol[],
     isValid: boolean;
 }
 
-const inputUsername = ref<InputField>({ username: '', isValid: false });
-const inputPassword = ref<InputField>({ password: '', isValid: false });
-const inputDocument = ref<InputField>({ document: '', isValid: false });
-const inputRoles = ref<InputField>({ roles: [], isValid: false });
+const inputUsername = ref<InputStringField>({ data: '', isValid: false });
+const inputPassword = ref<InputStringField>({ data: '', isValid: false });
+const inputDocument = ref<InputStringField>({ data: '', isValid: false });
+const inputRoles = ref<InputArrayField>({ data: [], isValid: false });
 
-const isValid = computed(() => {
+const formData = computed(() => {
+    return {
+        username: inputUsername.value.data,
+        password: inputPassword.value.data,
+        document: inputDocument.value.data,
+        groups_id: Object.values(inputRoles.value.data).map((rol: UserRol) => rol.id)
+    }
+})
+
+const formValid = computed(() => {
     return [
         inputUsername.value.isValid,
         inputPassword.value.isValid,
@@ -121,27 +140,9 @@ const handleForm = () => {
     closeForm.value = !closeForm.value
 }
 
-// POST /api/accounts/users/
-const createUser = async () => {
-    const userData = {
-        username: inputUsername.value.username,
-        password: inputPassword.value.password,
-        document: inputDocument.value.document,
-        group_ids: Object.values(inputRoles.value.roles).map((rol: UserRol) => rol.id)
-    }
-
-    console.log(`Enviando ${JSON.stringify(userData)}`)
-    try {
-        isLoading.value = true
-        closeForm()
-        await store.dispatch('accounts/createUser', userData);
-        console.log('Usuarios creado exitosamente');
-    } catch (error) {
-        console.error('Error al crear el usuario:', error);
-    } finally {
-        isLoading.value = false
-    }
-};
+const sendFormData = () => {
+    emits('submit-form', formData.value)
+}
 </script>
 
 <style scoped lang="scss">

@@ -35,33 +35,66 @@ import InputUserRoles from '../inputs/InputUserRoles.vue';
 import { UserRow } from '@/types/table-common.interface';
 import { InputRolesData } from '@/types/user-input-roles.interface';
 import { UserRol } from '@/types/user-rol.interfaces';
+import { FormUserUpdateData } from '@/types/user-form';
 
 const props = defineProps<{
     default: UserRow
 }>();
 
 const emits = defineEmits<{
-    (e: 'close'): void;
     (e: 'update:rowSelected', value: UserRow): void;
+    (e: 'submit-form', value: FormUserUpdateData): void
 }>()
 
-interface InputField<T = string> {
-    [key: string]: T | boolean | UserRol[];
+interface InputStringField {
+    data: string,
     isValid: boolean;
 }
 
-const inputUsername = ref<InputField>(
-    structuredClone({ username: props.default.username, isValid: true })
+interface InputArrayField {
+    data: UserRol[];
+    isValid: boolean;
+}
+
+const inputUsername = ref<InputStringField>(
+    structuredClone({ data: props.default.username, isValid: true })
 );
-const inputPassword = ref<InputField>(
-    { password: '', isValid: true }
+const inputPassword = ref<InputStringField>(
+    { data: '', isValid: true }
 );
-const inputDocument = ref<InputField>(
-    structuredClone({ document: props.default.document, isValid: true })
+const inputDocument = ref<InputStringField>(
+    structuredClone({ data: props.default.document, isValid: true })
 );
-const inputRoles = ref<InputField>(
-    structuredClone({ roles: props.default.roles, isValid: true }),
+const inputRoles = ref<InputArrayField>(
+    structuredClone({ data: props.default.roles, isValid: true }),
 );
+
+const formData = computed(() => {
+    const data:FormUserUpdateData = {
+        username: inputUsername.value.data,
+        password: inputPassword.value.data,
+        document: inputDocument.value.data,
+        groups_id: Object(inputRoles.value.data).map((rol: UserRol) => {rol.id})
+    }
+    const usernameChanged = inputChanged(props.default.username, inputUsername.value.data);
+    const documentChanged = inputChanged(props.default.document, inputDocument.value.data);
+    const passwordChanged = inputPassword.value.data !== ""
+    const rolesChanged = inputChanged(props.default.roles, inputRoles.value.data);
+
+    if (!usernameChanged) {
+        delete data.username
+    }
+    if (!passwordChanged) {
+        delete data.password
+    }
+    if (!documentChanged) {
+        delete data.document
+    }
+    if (!rolesChanged) {
+        delete data.groups_id
+    } 
+    return data
+})
 
 const areArrayObjectsEqual = (a: UserRol[], b: UserRol[]): boolean => {
     const a_ids = a.map(e => Number(e.id)).sort((x, y) => x - y);
@@ -81,11 +114,11 @@ const inputChanged = (value: any, newValue: any) => {
     return isChanged;
 };
 
-const isValid = computed(() => {
+const formValid = computed(() => {
     console.log("Calculando validez del formulario")
-    const usernameChanged = inputChanged(props.default.username, inputUsername.value.username);
-    const documentChanged = inputChanged(props.default.document, inputDocument.value.document);
-    const rolesChanged = inputChanged(props.default.roles, inputRoles.value.roles);
+    const usernameChanged = inputChanged(props.default.username, inputUsername.value.data);
+    const documentChanged = inputChanged(props.default.document, inputDocument.value.data);
+    const rolesChanged = inputChanged(props.default.roles, inputRoles.value.data);
     if (usernameChanged) {
         if (inputUsername.value.isValid) {
             console.log("Username ha cambiado y es válido")
@@ -107,44 +140,36 @@ const isValid = computed(() => {
             console.log("Roles ha cambiado y no es válido")
         }
     }
-    let formValid
-    //if ((usernameChanged && !inputUsername.value.isValid) || (!usernameChanged && inputUsername.value.isValid)) {
-    //    formValid = false
-    //}
-    //if ((documentChanged && !inputDocument.value.isValid) || (!documentChanged && inputDocument.value.isValid)) {
-    //    formValid = false
-    //}
-    //if ((rolesChanged && !inputRoles.value.isValid) || (!rolesChanged && inputRoles.value.isValid)) {
-    //    formValid = false
-    //}
+
+    let result
 
     if (!usernameChanged && !documentChanged && !rolesChanged) {
-        formValid = false
+        result = false
     } else {
-        formValid = true
+        result = true
         if (usernameChanged && !inputUsername.value.isValid) {
-            formValid = false
+            result = false
         }
         if (documentChanged && !inputDocument.value.isValid) {
-            formValid = false
+            result = false
         }
         if (rolesChanged && !inputRoles.value.isValid) {
-            formValid = false
+            result = false
         }
     }
-    if (inputPassword.value.password !== "") {
-        formValid = true
+    if (inputPassword.value.data !== "") {
+        result = true
     }
 
-    console.log(`El formulario ${formValid ? "" : "no"} es válido`)
-    return formValid
+    console.log(`El formulario ${result ? "" : "no"} es válido`)
+    return result
 });
 
 const dataInputUsername = ref<InputCommonData>({
     title: 'Nombre de usuario',
     description: 'Especifica un nombre para este usuario',
-    value: inputUsername.value.username as string,
-    default: inputUsername.value.username as string,
+    value: inputUsername.value.data as string,
+    default: inputUsername.value.data as string,
     name: 'username',
     typeValue: 'text',
     rules: {
@@ -171,8 +196,8 @@ const dataInputUsername = ref<InputCommonData>({
 const dataInputDocument = ref<InputCommonData>({
     title: 'Documento de identidad',
     description: 'Especifica un documento de identidad para este usuario',
-    value: inputDocument.value.document as string,
-    default: inputDocument.value.document as string,
+    value: inputDocument.value.data as string,
+    default: inputDocument.value.data as string,
     name: 'document',
     typeValue: 'text',
     rules: {
@@ -197,7 +222,7 @@ const dataInputDocument = ref<InputCommonData>({
 });
 
 const dataInputRoles = ref<InputRolesData>({
-    rolesSelected: inputRoles.value.roles as UserRol[]
+    rolesSelected: inputRoles.value.data as UserRol[]
 })
 
 const isLoading = ref(false)
@@ -206,55 +231,9 @@ const closeForm = () => {
     emits("close")
 }
 
-// POST /api/accounts/users/
-const updateUser = async () => {
-    console.log(`array roles: ${inputRoles.value.roles}`)
-    console.log(`array ids: ${Object.values(inputRoles.value.roles).map((rol: UserRol) => rol.id)}`)
-    interface UserData {
-        username?: any;
-        password?: any;
-        document: any;
-        group_ids: any;
-    }
-
-    let userData: UserData = {
-        username: inputUsername.value.username,
-        password: inputPassword.value.password,
-        document: inputDocument.value.document,
-        group_ids: Object.values(inputRoles.value.roles).map((rol: UserRol) => rol.id),
-    };
-
-    if (!inputChanged(props.default.username, inputUsername.value.username)) {
-        delete userData.username;
-    }
-
-    if (userData.password === "") {
-        delete userData.password;
-    }
-
-    if (!inputChanged(props.default.document, inputDocument.value.document)) {
-        delete userData.document;
-    }
-
-    if (!inputChanged(props.default.roles, inputRoles.value.roles)) {
-        delete userData.group_ids;
-    }
-
-    console.log(`Enviando ${JSON.stringify(userData)}`)
-    try {
-        isLoading.value = true
-
-        closeForm()
-        const updatedUser = await store.dispatch('accounts/updateUser', { userId: props.default.id, userData: userData });
-        console.log('Usuarios actualizado exitosamente');
-        console.log(JSON.stringify(updatedUser))
-        emits('update:rowSelected', updatedUser)
-    } catch (error) {
-        console.error('Error al actualizar el usuario:', error);
-    } finally {
-        isLoading.value = false
-    }
-};
+const sendFormData = () => {
+    emits('submit-form', formData.value)
+}
 </script>
 
 <style scoped lang="scss">
