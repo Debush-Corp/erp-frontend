@@ -24,4 +24,5 @@ export interface LoginResponse {
     next: string | null;
     previous: string | null;
     results: T[];
+    page_exists: boolean; // 👈 agrégalo aquí
   }

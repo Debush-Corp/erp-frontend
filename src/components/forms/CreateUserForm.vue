@@ -2,7 +2,7 @@
     <div class="create-user-form">
         <div class="head">
             <h2>Crear un usuario</h2>
-            <img @click.stop="handleForm" src="@/assets/icons/forms/form-close.svg" alt="icon-close">
+            <img @click.stop="handleForm()" src="@/assets/icons/forms/form-close.svg" alt="icon-close">
         </div>
         <div class="body">
             <InputUserCommon :data="dataInputUsername"
@@ -19,7 +19,7 @@
         </div>
         <div class="foot">
             <button class="btn-secondary" id="btn-cancel" @click="handleForm()">Cancelar</button>
-            <button class="btn-primary" id="btn-create" @click="sendFormData" :disabled="isLoading || !formValid">Crear</button>
+            <button class="btn-primary" id="btn-create" @click="sendFormData()" :disabled="isLoading || !formValid">Crear</button>
         </div>
     </div>
 </template>
@@ -36,6 +36,7 @@ import { UserRol } from '@/types/user-rol.interfaces';
 import { FormUserCreateData } from '@/types/user-form';
 
 const emits = defineEmits<{
+    (e: 'close-form'): void,
     (e: 'submit-form', value: FormUserCreateData): void;
 }>();
 
@@ -99,8 +100,6 @@ const dataInputRoles = ref<InputRolesData>({
     rolesSelected: []
 })
 
-const closeForm = ref(false);
-
 const isLoading = ref(false)
 
 interface InputStringField {
@@ -123,7 +122,7 @@ const formData = computed(() => {
         username: inputUsername.value.data,
         password: inputPassword.value.data,
         document: inputDocument.value.data,
-        groups_id: Object.values(inputRoles.value.data).map((rol: UserRol) => rol.id)
+        group_ids: Object.values(inputRoles.value.data).map((rol: UserRol) => rol.id)
     }
 })
 
@@ -137,7 +136,7 @@ const formValid = computed(() => {
 })
 
 const handleForm = () => {
-    closeForm.value = !closeForm.value
+    emits('close-form')
 }
 
 const sendFormData = () => {

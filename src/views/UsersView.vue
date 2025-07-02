@@ -1,7 +1,7 @@
 <template>
     <div ref="containerRef" class="users-view">
         <div class="main" :style="{ height: mainHeight + 'px' }">
-            <ToastAlert :alerts="dataAlerts" />
+            <ToastAlert :alerts="dataAlerts" @update:alerts="(value: Alert[]) => { dataAlerts = value as Alert[] }" />
             <div class="head-main">
                 <h3>Usuarios <span>({{ totalUsers }})</span></h3>
                 <div class="buttons">
@@ -68,20 +68,22 @@
             </svg>
         </div>
         <div class="details" :style="{ height: `calc(100% - ${mainHeight}px - 6px)` }">
-            <h3>Seleccione un producto <span></span></h3>
+            <h3>Seleccione un usuario <span></span></h3>
         </div>
         <transition name="modal-transition">
             <div v-if="modalOpen" class="over" @click="handleModal($event, false)">
-                <CreateUserForm v-if="form === 'userCreate'" @close="modalOpen = false" />
-                <UpdateUserForm v-else-if="form === 'userUpdate'" @close="modalOpen = false" :default="rowsSelected[0]"
-                    @update:rowSelected="(value: UserRow) => { rowsSelected[0] = value }" />
+                <CreateUserForm v-if="form === 'userCreate'" @close-form="modalOpen = false"
+                    @submit-form="(value: FormUserCreateData) => { createUser(value) }" />
+                <UpdateUserForm v-if="form === 'userUpdate'" @close-form="modalOpen = false" :default="rowsSelected"
+                    @update:rowSelected="(value: UserRow) => { rowsSelected = [value] }"
+                    @submit-form="(value: FormUserUpdateData) => { updateUser(value) }" />
             </div>
         </transition>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, onBeforeMount, watch } from "vue";
+import { ref, onMounted, onBeforeUnmount, onBeforeMount, watch, useId, provide, nextTick } from "vue";
 import store from "@/store";
 import ToastAlert from "@/components/alerts/ToastAlert.vue";
 import TableCommon from "@/components/tables/TableCommon.vue";
@@ -90,6 +92,8 @@ import UpdateUserForm from "@/components/forms/UpdateUserForm.vue";
 import { TableColumn, TableRow } from "@/types/table-common.interface";
 import { UserRow } from "@/types/table-common.interface";
 import { Alert } from "@/types/toast-alert.interface";
+import { FormUserCreateData, FormUserUpdateData } from "@/types/user-form";
+import { PaginatedResponse, User } from "@/types/interfaces";
 
 const isLoading = ref(false)
 const modalOpen = ref(false)
@@ -108,6 +112,9 @@ const rowsSelected = ref<UserRow[]>([]);
 const containerRef = ref<HTMLElement | null>(null);
 const mainHeight = ref(400);
 const isDragging = ref(false);
+
+const removeRowsSelected = ref(false)
+provide('deselectedRows', removeRowsSelected)
 
 const onMouseMove = (e: MouseEvent | TouchEvent) => {
     if (!isDragging.value || !containerRef.value) return;
@@ -134,6 +141,7 @@ const fetchUsers = async (page: number) => {
     try {
         isLoading.value = true
         const res = await store.dispatch('accounts/fetchUsers', { page: page });
+
         if (res && res.results && res.results.length > 0) {
             columns.value = Object.keys(res.results[0]).map((key) => ({
                 name: key.charAt(0).toUpperCase() + key.slice(1),
@@ -183,9 +191,11 @@ onMounted(() => {
     document.addEventListener("touchmove", onMouseMove, { passive: false });
     document.addEventListener("touchend", smainDragging);
 
-    watch(currentPage, async () => {
-        await fetchUsers(currentPage.value)
-    })
+
+    watch(() => currentPage.value, async (newPage) => {
+        rows.value = []
+        await fetchUsers(newPage);
+    });
 });
 
 onBeforeUnmount(() => {
@@ -195,12 +205,26 @@ onBeforeUnmount(() => {
     document.removeEventListener("touchend", smainDragging);
 });
 
-const createUser = async (data: Object) => {
+const dataAlerts = ref<Alert[]>([
+])
+
+const alertId = ref<number>(0)
+
+const createUser = async (data: FormUserCreateData) => {
     console.log(`Enviando ${JSON.stringify(data)}`)
     try {
         isLoading.value = true
+        modalOpen.value = false
         await store.dispatch('accounts/createUser', data);
-        console.log('Usuarios creado exitosamente');
+        await fetchUsers(currentPage.value);
+        console.log('Usuario creado exitosamente');
+        alertId.value = alertId.value + 1;
+        const alert: Alert = {
+            id: String(alertId.value),
+            type: "success",
+            message: "Usuarios creado exitosamente"
+        }
+        dataAlerts.value.push(alert)
     } catch (error) {
         console.error('Error al crear el usuario:', error);
     } finally {
@@ -208,13 +232,40 @@ const createUser = async (data: Object) => {
     }
 };
 
-const updateUser = async (data: object) => {
+const updateUser = async (data: FormUserUpdateData) => {
     console.log(`Enviando ${JSON.stringify(data)}`)
     try {
         isLoading.value = true
-        const updatedUser = await store.dispatch('accounts/updateUser', data);
-        console.log('Usuarios actualizado exitosamente');
-        console.log(JSON.stringify(updatedUser))
+        modalOpen.value = false
+        const updatedUser = await store.dispatch('accounts/updateUser', { userId: rowsSelected.value[0].id, userData: data });
+        console.log('Usuario actualizado exitosamente');
+        removeRowsSelected.value = true
+        await nextTick()
+        removeRowsSelected.value = false
+        await fetchUsers(currentPage.value)
+        alertId.value = alertId.value + 1;
+        const alert: Alert = {
+            id: String(alertId.value),
+            type: "success",
+            message: "Usuario actualizado exitosamente"
+        }
+        dataAlerts.value.push(alert)
+        console.log(`UpdatedUser: ${JSON.stringify(updatedUser)}`)
+
+        //const userRowUpdated: UserRow = {
+        //    id: updatedUser.id,
+        //    username: "gaaaaa",
+        //    firstname: updatedUser.first_name,
+        //    lastname: updatedUser.last_name,
+        //    email: updatedUser.email,
+        //    document: updatedUser.document,
+        //    isActive: updatedUser.is_active,
+        //    roles: updatedUser.roles
+        //}
+        //
+        //console.log(`UserRowUpdated: ${JSON.stringify(userRowUpdated)}`)
+        //rowsSelected.value = [structuredClone(userRowUpdated)]
+        //console.log(`NewRowsSelected: ${JSON.stringify(rowsSelected.value)}`)
     } catch (error) {
         console.error('Error al actualizar el usuario:', error);
     } finally {
@@ -223,26 +274,58 @@ const updateUser = async (data: object) => {
 };
 
 const deleteUsers = async () => {
-    try {
-        isLoading.value = true
-        await Promise.all(rowsSelected.value.map((rowselected) => {
-            return store.dispatch('accounts/deleteUser', rowselected.id);
-        }));
-        rowsSelected.value = [];
-        console.log('Usuarios eliminados exitosamente');
-    } catch (error) {
-        console.error('Error al eliminar usuarios:', error);
-    } finally {
-        isLoading.value = false
-    }
-    await fetchUsers(currentPage.value);
-};
+    let alert: Alert | null = null;
 
-const dataAlerts: Alert[] = [
-    { id: "1", type: "success", "message": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
-    { id: "2", type: "error", "message": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
-    { id: "3", type: "fail", "message": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
-]
+    try {
+        isLoading.value = true;
+        modalOpen.value = false;
+
+        await Promise.all(
+            rowsSelected.value.map((row) =>
+                store.dispatch("accounts/deleteUser", row.id)
+            )
+        );
+
+        alertId.value += 1;
+        alert = {
+            id: String(alertId.value),
+            type: "success",
+            message:
+                rowsSelected.value.length > 1
+                    ? "Usuarios eliminados exitosamente"
+                    : "Usuario eliminado exitosamente",
+        };
+    } catch (error) {
+        alertId.value += 1;
+        alert = {
+            id: String(alertId.value),
+            type: "error",
+            message:
+                rowsSelected.value.length > 1
+                    ? "Error al eliminar usuarios"
+                    : "Error al eliminar usuario",
+        };
+        console.error("Error al eliminar usuarios:", error);
+    } finally {
+        if (alert) {
+            dataAlerts.value.unshift(alert); // Muestra el más reciente primero
+        }
+
+        rowsSelected.value = [];
+
+        const res = await store.dispatch("accounts/fetchUsers", {
+            page: currentPage.value,
+        });
+
+        if (!res.page_exists && currentPage.value > 1) {
+            currentPage.value -= 1;
+        } else {
+            await fetchUsers(currentPage.value);
+        }
+
+        isLoading.value = false;
+    }
+};
 </script>
 
 <style scoped lang="scss">
@@ -340,11 +423,11 @@ p {
 
 #btn-refresh:enabled:hover {
     background: #F0FBFF;
-    border: 2px solid #012B66;
+    border: 2px solid #007bff;
 }
 
 #btn-refresh:hover svg .line-svg {
-    fill: #012B66;
+    fill: #007bff;
 }
 
 #btn-delete,

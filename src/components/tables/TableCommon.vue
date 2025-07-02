@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts" generic="T extends TableRow">
-import { defineProps, ref, watch, defineEmits, nextTick, Ref } from 'vue';
+import { defineProps, ref, watch, defineEmits, nextTick, Ref, inject } from 'vue';
 import { TableColumn, TableRow, TableCheckbox } from '@/types/table-common.interface';
 
 //const props = defineProps({
@@ -115,6 +115,17 @@ const formatValue = (value: any) => {
         return value
     }
 };
+
+const removeRowsSelected = inject<Ref<boolean>>('deselectedRows')
+
+if (removeRowsSelected) {
+  watch(removeRowsSelected, (value) => {
+    console.log("RemoveRowsSelected ha cambiado")
+    if (value) {
+      rowsSelected.value = []
+    }
+  })
+}
 
 watch(
     () => props.rows,

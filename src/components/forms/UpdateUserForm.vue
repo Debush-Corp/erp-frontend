@@ -2,25 +2,25 @@
     <div class="update-user-form">
         <div class="head">
             <h2>Editar datos de usuario</h2>
-            <img @click.stop="closeForm" src="@/assets/icons/forms/form-close.svg" alt="icon-close">
+            <img @click.stop="handleForm" src="@/assets/icons/forms/form-close.svg" alt="icon-close">
         </div>
         <div class="body">
             <InputUserCommon :data="dataInputUsername"
-                @update:model-value="(value: string) => { inputUsername.username = value }"
+                @update:model-value="(value: string) => { inputUsername.data = value }"
                 @update:is-valid="(value: boolean) => { inputUsername.isValid = value }" />
-            <InputUserPassword @update:model-value="(value: string) => { inputPassword.password = value }"
+            <InputUserPassword @update:model-value="(value: string) => { inputPassword.data = value }"
                 @update:is-valid="(value: boolean) => { inputPassword.isValid = value }" />
             <InputUserCommon :data="dataInputDocument"
-                @update:model-value="(value: string) => { inputDocument.document = value }"
+                @update:model-value="(value: string) => { inputDocument.data = value }"
                 @update:is-valid="(value: boolean) => { inputDocument.isValid = value }" />
             <InputUserRoles :data="dataInputRoles"
-                @update:model-value="(value: UserRol[]) => { inputRoles.roles = value }"
+                @update:model-value="(value: UserRol[]) => { inputRoles.data = value }"
                 @update:is-valid="(value: boolean) => { inputRoles.isValid = value }" />
         </div>
         <div class="foot">
-            <button class="btn-secondary" id="btn-cancel" @click="closeForm">Cancelar</button>
-            <button class="btn-primary" id="btn-create" @click="updateUser"
-                :disabled="isLoading || !isValid">Actualizar</button>
+            <button class="btn-secondary" id="btn-cancel" @click="handleForm">Cancelar</button>
+            <button class="btn-primary" id="btn-create" @click="sendFormData()"
+                :disabled="isLoading || !formValid">Actualizar</button>
         </div>
     </div>
 </template>
@@ -38,13 +38,20 @@ import { UserRol } from '@/types/user-rol.interfaces';
 import { FormUserUpdateData } from '@/types/user-form';
 
 const props = defineProps<{
-    default: UserRow
+    default: UserRow[]
 }>();
 
 const emits = defineEmits<{
-    (e: 'update:rowSelected', value: UserRow): void;
+    (e: 'update:rowSelected', value: UserRow): void,
+    (e: 'close-form'): void,
     (e: 'submit-form', value: FormUserUpdateData): void
 }>()
+
+const isLoading = ref(false)
+
+const handleForm = () => {
+    emits('close-form')
+}
 
 interface InputStringField {
     data: string,
@@ -57,16 +64,16 @@ interface InputArrayField {
 }
 
 const inputUsername = ref<InputStringField>(
-    structuredClone({ data: props.default.username, isValid: true })
+    structuredClone({ data: props.default[0].username, isValid: true })
 );
 const inputPassword = ref<InputStringField>(
     { data: '', isValid: true }
 );
 const inputDocument = ref<InputStringField>(
-    structuredClone({ data: props.default.document, isValid: true })
+    structuredClone({ data: props.default[0].document, isValid: true })
 );
 const inputRoles = ref<InputArrayField>(
-    structuredClone({ data: props.default.roles, isValid: true }),
+    structuredClone({ data: props.default[0].roles, isValid: true }),
 );
 
 const formData = computed(() => {
@@ -74,12 +81,12 @@ const formData = computed(() => {
         username: inputUsername.value.data,
         password: inputPassword.value.data,
         document: inputDocument.value.data,
-        groups_id: Object(inputRoles.value.data).map((rol: UserRol) => {rol.id})
+        group_ids: Object.values(inputRoles.value.data).map((rol: UserRol) => rol.id)
     }
-    const usernameChanged = inputChanged(props.default.username, inputUsername.value.data);
-    const documentChanged = inputChanged(props.default.document, inputDocument.value.data);
+    const usernameChanged = inputChanged(props.default[0].username, inputUsername.value.data);
+    const documentChanged = inputChanged(props.default[0].document, inputDocument.value.data);
     const passwordChanged = inputPassword.value.data !== ""
-    const rolesChanged = inputChanged(props.default.roles, inputRoles.value.data);
+    const rolesChanged = inputChanged(props.default[0].roles, inputRoles.value.data);
 
     if (!usernameChanged) {
         delete data.username
@@ -91,7 +98,7 @@ const formData = computed(() => {
         delete data.document
     }
     if (!rolesChanged) {
-        delete data.groups_id
+        delete data.group_ids
     } 
     return data
 })
@@ -116,9 +123,9 @@ const inputChanged = (value: any, newValue: any) => {
 
 const formValid = computed(() => {
     console.log("Calculando validez del formulario")
-    const usernameChanged = inputChanged(props.default.username, inputUsername.value.data);
-    const documentChanged = inputChanged(props.default.document, inputDocument.value.data);
-    const rolesChanged = inputChanged(props.default.roles, inputRoles.value.data);
+    const usernameChanged = inputChanged(props.default[0].username, inputUsername.value.data);
+    const documentChanged = inputChanged(props.default[0].document, inputDocument.value.data);
+    const rolesChanged = inputChanged(props.default[0].roles, inputRoles.value.data);
     if (usernameChanged) {
         if (inputUsername.value.isValid) {
             console.log("Username ha cambiado y es válido")
@@ -224,12 +231,6 @@ const dataInputDocument = ref<InputCommonData>({
 const dataInputRoles = ref<InputRolesData>({
     rolesSelected: inputRoles.value.data as UserRol[]
 })
-
-const isLoading = ref(false)
-
-const closeForm = () => {
-    emits("close")
-}
 
 const sendFormData = () => {
     emits('submit-form', formData.value)

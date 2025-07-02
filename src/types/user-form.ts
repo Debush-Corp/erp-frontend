@@ -4,12 +4,12 @@ export interface FormUserCreateData {
     username: string,
     password: string,
     document: string,
-    groups_id: number[]
+    group_ids: number[]
 }
 
 export interface FormUserUpdateData {
     username?: string,
     password?: string,
     document?: string,
-    groups_id?: number[]
+    group_ids?: number[]
 }
