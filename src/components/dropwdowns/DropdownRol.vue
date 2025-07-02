@@ -7,8 +7,8 @@
             <div class="separator"></div>
             <template v-for="(valueRol, keyRol, j) in valueFamily.roles" :key="keyRol">
                 <div class="rol">
-                    <div class="rol-left">
-                        <input type="checkbox" name="" :checked="rolesSelected.findIndex(r => r.id == keyRol) !== -1" id="" @click="rolClicked(keyRol, valueRol.name)">
+                    <div class="rol-left" @click="rolClicked(keyRol, valueRol.name)"> 
+                        <input type="checkbox" name="" :checked="rolesSelected.findIndex(r => r.id == keyRol) !== -1" id="" readonly>
                         <span>{{ valueRol.name }}</span>
                     </div>
                     <div class="rol-rigth">
@@ -94,13 +94,13 @@ const rolClicked = (keyRol: number, nameRol: string) => {
 .rol {
     width: 100%;
     display: flex;
-    box-sizing: border-box;
-    padding: 8px 10px;
 }
 
 .family-name {
     font-weight: bold;
     color: #0F141A;
+    box-sizing: border-box;
+    padding: 8px 10px;
 }
 
 .rol {
@@ -110,18 +110,25 @@ const rolClicked = (keyRol: number, nameRol: string) => {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+    box-sizing: border-box;
+    padding: 0px 8px 0px 0px;
 }
 
 .rol-left {
     display: flex;
+    width: 100%;
     flex-direction: row;
     align-items: center;
     gap: 5px;
+    box-sizing: border-box;
+    padding: 10px 8px;
+    cursor: pointer;
 }
 
 .rol-left span {
-    text-align: center;
+    text-align: start;
     text-wrap: wrap;
+    flex: 1;
 }
 
 .rol-rigth {
@@ -149,6 +156,7 @@ const rolClicked = (keyRol: number, nameRol: string) => {
     font-size: 12px;
     color: #fff;
     line-height: 1.2;
+    pointer-events: none;
 }
 
 .rol-rigth:has(svg:hover) .tooltip {

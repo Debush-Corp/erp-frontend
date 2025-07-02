@@ -308,7 +308,7 @@ const deleteUsers = async () => {
         console.error("Error al eliminar usuarios:", error);
     } finally {
         if (alert) {
-            dataAlerts.value.unshift(alert); // Muestra el más reciente primero
+            dataAlerts.value.push(alert); // Muestra el más reciente primero
         }
 
         rowsSelected.value = [];
